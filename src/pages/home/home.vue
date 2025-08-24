@@ -203,13 +203,19 @@ import slide2 from '../../static/items/wxpic_head_20250822000825.jpg';
 import slide3 from '../../static/items/wxpic_202508220008262.jpg';
 import service1 from '../../static/items/wxpic_202508220008253.jpg';
 import service2 from '../../static/items/wxpic_202508220008254.jpg';
-import package1 from '../../static/items/wxpic_202508220008261.jpg';
-import package2 from '../../static/items/wxpic_202508220008262.jpg';
+import qingspa from '../../static/items/wxpic_202508220008261.jpg';
+import yunspa from '../../static/items/wxpic_202508220008262.jpg';
 import tech1 from '../../static/items/wxpic_202508220008263.jpg';
 import tech2 from '../../static/items/wxpic_202508220008264.jpg';
 import tech3 from '../../static/items/wxpic_202508220008265.jpg';
 import tech4 from '../../static/items/wxpic_202508220008266.jpg';
 import avatar1 from '../../static/items/wxpic_202508220008267.jpg';
+
+import shuizudao from '../../static/items/wxpic_20250824234702.jpg';
+
+import shengzudao from '../../static/items/wxpic_202508220008252.jpg';
+
+
 // 导入新的中心入口图片
 import entry1 from '../../static/items/distribution-certificate.svg';
 import entry2 from '../../static/items/member-certificate.svg';
@@ -242,16 +248,16 @@ export default {
     
     // 服务项目数据 - 使用导入的图片变量
     const services = ref([
-      { id: 1, name: '经典足道', desc: '60分钟足部按摩', price: 128, img: service1 },
-      { id: 2, name: '皇室SPA', desc: '90分钟全身精油按摩', price: 268, img: service2 },
-      { id: 3, name: '泰式按摩', desc: '75分钟传统泰式手法', price: 198, img: slide1 },
-      { id: 4, name: '肩颈护理', desc: '45分钟肩颈舒缓按摩', price: 158, img: slide2 }
+      { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: service1 },
+      { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: service2 },
+      { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: shuizudao },
+      { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: yunspa }
     ]);
     
     // 套餐数据 - 使用导入的图片变量
     const packages = ref([
-      { id: 1, name: '身心放松套餐', price: 298, duration: '120分钟', img: slide2 },
-      { id: 2, name: '皇家尊享套餐', price: 398, duration: '150分钟', img: slide3 }
+      { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: shengzudao },
+      { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: qingspa }
     ]);
     
     // 技师数据 - 使用导入的图片变量
@@ -528,6 +534,11 @@ export default {
   font-size: 24rpx;
   color: #999;
   margin-top: 10rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 限制显示2行 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .service-footer {

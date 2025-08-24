@@ -1,5 +1,8 @@
 import { ref } from 'vue';
 
+// 购物车存储键名
+const CART_STORAGE_KEY = 'spa_cart_items';
+
 /**
  * 添加购物车功能的组合式函数
  * @param {Object} options - 配置选项
@@ -71,14 +74,71 @@ export function useAddToCart(options = {}) {
   };
 
   /**
+   * 获取购物车数据
+   * @returns {Array} 购物车项目数组
+   */
+  const getCartItems = () => {
+    try {
+      const cartItems = uni.getStorageSync(CART_STORAGE_KEY);
+      return cartItems ? JSON.parse(cartItems) : [];
+    } catch (e) {
+      console.error('获取购物车数据失败:', e);
+      return [];
+    }
+  };
+
+  /**
+   * 保存购物车数据
+   * @param {Array} cartItems - 购物车项目数组
+   */
+  const saveCartItems = (cartItems) => {
+    try {
+      uni.setStorageSync(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch (e) {
+      console.error('保存购物车数据失败:', e);
+    }
+  };
+
+  /**
    * 确认加入购物车
    * @param {Function} callback - 加入购物车后的回调函数
    */
   const confirmAddToCart = (callback) => {
     if (selectedItem.value) {
+      // 获取当前购物车数据
+      const cartItems = getCartItems();
+      
+      // 创建要添加的购物车项目
+      const cartItem = {
+        id: selectedItem.value.id,
+        name: selectedItem.value.name,
+        price: selectedItem.value.price,
+        originalPrice: selectedItem.value.originalPrice || selectedItem.value.price,
+        quantity: quantity.value,
+        duration: selectedDuration.value,
+        img: selectedItem.value.img
+      };
+      
+      // 检查购物车中是否已存在相同的项目
+      const existingIndex = cartItems.findIndex(item => 
+        item.id === cartItem.id && item.duration === cartItem.duration
+      );
+      
+      // 如果存在则更新数量，否则添加新项目
+      if (existingIndex >= 0) {
+        cartItems[existingIndex].quantity += cartItem.quantity;
+      } else {
+        cartItems.push(cartItem);
+      }
+      
+      // 保存更新后的购物车数据
+      saveCartItems(cartItems);
+      
+      // 显示成功提示
       uni.showToast({
         title: `${selectedItem.value.name}已加入购物车`, 
-        icon: 'success'
+        icon: 'success',
+        duration: 2000
       });
       
       // 如果提供了回调函数，则调用它
@@ -90,7 +150,10 @@ export function useAddToCart(options = {}) {
         });
       }
       
-      closeBottomSheet();
+      // 关闭底部弹出框
+      setTimeout(() => {
+        closeBottomSheet();
+      }, 1500);
     }
   };
 

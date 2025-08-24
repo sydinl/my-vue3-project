@@ -46,32 +46,75 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 // 直接导入图片
 import img1 from '../../static/items/wxpic_202508220008253.jpg';
 import img2 from '../../static/items/wxpic_202508220008254.jpg';
 
+// 购物车存储键名
+const CART_STORAGE_KEY = 'spa_cart_items';
+
 export default {
   name: 'CartPage',
+  // 页面显示时重新加载购物车数据 - 在uni-app中，onShow应该定义为组件选项
+  onShow() {
+    this.loadCartItems();
+  },
   setup() {
-    // 模拟购物车数据
-    const cartItems = ref([
-      {
-        id: 1,
-        name: '经典足道',
-        price: 128,
-        quantity: 1,
-        img: img1
-      },
-      {
-        id: 2,
-        name: '皇室SPA',
-        price: 268,
-        quantity: 1,
-        img: img2
+    // 购物车数据
+    const cartItems = ref([]);
+
+    // 从本地存储加载购物车数据
+    const loadCartItems = () => {
+      try {
+        const cartData = uni.getStorageSync(CART_STORAGE_KEY);
+        if (cartData) {
+          cartItems.value = JSON.parse(cartData);
+        }
+      } catch (e) {
+        console.error('加载购物车数据失败:', e);
       }
-    ]);
+    };
+
+    // 保存购物车数据到本地存储
+    const saveCartItems = () => {
+      try {
+        uni.setStorageSync(CART_STORAGE_KEY, JSON.stringify(cartItems.value));
+      } catch (e) {
+        console.error('保存购物车数据失败:', e);
+      }
+    };
+
+    // 组件挂载时加载购物车数据
+    onMounted(() => {
+      loadCartItems();
+      
+      // 如果购物车为空，添加一些默认商品
+      if (cartItems.value.length === 0) {
+        cartItems.value = [
+          {
+            id: 1,
+            name: '经典足道',
+            price: 128,
+            originalPrice: 168,
+            quantity: 1,
+            duration: '60分钟',
+            img: img1
+          },
+          {
+            id: 2,
+            name: '皇室SPA',
+            price: 268,
+            originalPrice: 328,
+            quantity: 1,
+            duration: '90分钟',
+            img: img2
+          }
+        ];
+        saveCartItems();
+      }
+    });
 
     // 计算总价
     const totalPrice = computed(() => {
@@ -81,12 +124,14 @@ export default {
     // 增加数量
     const increaseQuantity = (index) => {
       cartItems.value[index].quantity++;
+      saveCartItems();
     };
 
     // 减少数量
     const decreaseQuantity = (index) => {
       if (cartItems.value[index].quantity > 1) {
         cartItems.value[index].quantity--;
+        saveCartItems();
       } else {
         // 确认删除
         uni.showModal({
@@ -95,6 +140,7 @@ export default {
           success: (res) => {
             if (res.confirm) {
               cartItems.value.splice(index, 1);
+              saveCartItems();
             }
           }
         });
@@ -103,6 +149,15 @@ export default {
 
     // 结算
     const checkout = () => {
+      if (cartItems.value.length === 0) {
+        uni.showToast({ title: '购物车为空', icon: 'none' });
+        return;
+      }
+      
+      // 清空购物车
+      cartItems.value = [];
+      saveCartItems();
+      
       uni.showToast({ title: '结算成功', icon: 'success' });
     };
 
@@ -121,6 +176,7 @@ export default {
     return {
       cartItems,
       totalPrice,
+      loadCartItems,
       increaseQuantity,
       decreaseQuantity,
       checkout,
@@ -268,7 +324,7 @@ export default {
 
 .checkout-bar {
   position: fixed;
-  bottom: 0;
+  bottom: 100rpx;
   left: 0;
   right: 0;
   max-width: 750rpx;
