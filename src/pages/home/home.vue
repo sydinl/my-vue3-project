@@ -62,7 +62,7 @@
               <text class="service-desc">{{ service.desc }}</text>
               <view class="service-footer">
                 <text class="service-price">¥{{ service.price }}</text>
-                <button class="cart-button" @click="addToCart(service)">
+                <button class="cart-button" @click="openBottomSheet(service)">
                   <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
                 </button>
               </view>
@@ -140,10 +140,62 @@
       </view>
     </view>
   </view>
+  
+  <!-- 底部弹出框 -->
+  <div v-if="showBottomSheet" class="bottom-sheet" @click.self="closeBottomSheet">
+    <div class="sheet-overlay"></div>
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <image v-if="selectedService" :src="selectedService.img" class="selected-image"></image>
+        <div v-if="selectedService" class="selected-info">
+          <text class="selected-name">{{selectedService.name}}</text>
+          <text class="selected-price">¥{{selectedService.price}}</text>
+        </div>
+        <div class="sheet-close" @click="closeBottomSheet">
+          <image :src="closeIcon" class="close-icon"></image>
+        </div>
+      </div>
+      
+      <div class="sheet-body">
+        <!-- 时长选择 -->
+        <div class="option-section">
+          <text class="option-title">时长</text>
+          <div class="duration-options">
+            <div 
+              v-for="duration in durations" 
+              :key="duration"
+              :class="['duration-option', {active: selectedDuration === duration}]"
+              @click="selectDuration(duration)"
+            >
+              {{duration}}
+            </div>
+          </div>
+        </div>
+        
+        <!-- 数量选择 -->
+        <div class="option-section">
+        <text class="option-title">数量</text>
+        <div class="quantity-selector">
+          <button class="quantity-btn" @click="decreaseQuantity">-</button>
+          <text class="quantity">{{quantity}}</text>
+          <button class="quantity-btn" @click="increaseQuantity">+</button>
+        </div>
+      </div>
+      </div>
+      
+      <div class="sheet-footer">
+        <button class="add-to-cart-btn" @click="confirmAddToCart">加入购物车</button>
+        <button class="buy-now-btn" @click="closeBottomSheet">立即购买</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import { ref } from 'vue';
+
+// 导入公共的添加购物车功能
+import { useAddToCart } from '../../utils/cart-utils';
 
 // 直接导入图片
 import slide1 from '../../static/items/wxpic_head_20250822000722.jpg';
@@ -161,6 +213,8 @@ import avatar1 from '../../static/items/wxpic_202508220008267.jpg';
 // 导入新的中心入口图片
 import entry1 from '../../static/items/distribution-certificate.svg';
 import entry2 from '../../static/items/member-certificate.svg';
+// 导入关闭图标
+import closeIcon from '../../static/icons/close.svg';
 
 // 添加调试信息
 console.log('页面加载 - 检查图片路径问题');
@@ -253,6 +307,25 @@ export default {
       uni.showToast({ title: '查看所有评价', icon: 'none' });
     };
 
+    // 使用公共的添加购物车功能
+    const {
+      showBottomSheet,
+      selectedItem: selectedService,
+      durationOptions: durations,
+      selectedDuration,
+      quantity,
+      itemStockCount: stockCount,
+      openBottomSheet,
+      closeBottomSheet,
+      selectDuration,
+      increaseQuantity,
+      decreaseQuantity,
+      confirmAddToCart
+    } = useAddToCart({
+      durations: ['60分钟', '90分钟', '100分钟', '120分钟'],
+      defaultDurationIndex: 2 // 默认选中第3个选项（索引为2）即'100分钟'
+    });
+
     return {
       slides,
       services,
@@ -264,11 +337,24 @@ export default {
       goToDistributionCenter,
       goToMemberCenter,
       addToCart,
+      openBottomSheet,
+      closeBottomSheet,
+      selectDuration,
+      increaseQuantity,
+      decreaseQuantity,
+      confirmAddToCart,
       buyNow,
       viewMorePackages,
       viewAllTechnicians,
       viewAllReviews,
-      gotoSearch
+      gotoSearch,
+      showBottomSheet,
+      selectedService,
+      durations,
+      selectedDuration,
+      quantity,
+      stockCount,
+      closeIcon
     };
   }
 };
@@ -620,5 +706,174 @@ export default {
 
 [animation-delay] {
   animation-delay: var(--animation-delay);
+}
+
+/* 底部弹出框样式 */
+.bottom-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sheet-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.sheet-content {
+  background-color: #fff;
+  border-radius: 30rpx 30rpx 0 0;
+  padding: 30rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slide-up 0.3s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.selected-image {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 20rpx;
+  margin-right: 30rpx;
+}
+
+.selected-info {
+  flex: 1;
+}
+
+.selected-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.selected-price {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #FF5000;
+  margin-top: 20rpx;
+  display: block;
+}
+
+.sheet-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.close-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.sheet-body {
+  margin-bottom: 40rpx;
+}
+
+.option-section {
+  margin-bottom: 40rpx;
+}
+
+.option-title {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.duration-options {
+  display: flex;
+  gap: 20rpx;
+  flex-wrap: wrap;
+}
+
+.duration-option {
+  padding: 15rpx 30rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.duration-option.active {
+  border-color: #FF5000;
+  color: #FF5000;
+  background-color: rgba(255, 80, 0, 0.05);
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  width: 200rpx;
+}
+
+.quantity-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background-color: #f5f5f5;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.quantity {
+  margin: 0 30rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.stock-info {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 20rpx;
+}
+
+.sheet-footer {
+  display: flex;
+  gap: 20rpx;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  height: 90rpx;
+  background-color: #FF5000;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 45rpx;
+}
+
+.buy-now-btn {
+  flex: 1;
+  height: 90rpx;
+  background-color: #FFA500;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 45rpx;
 }
 </style>

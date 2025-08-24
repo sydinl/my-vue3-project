@@ -35,10 +35,62 @@
           <text class="project-desc">{{ project.desc }}</text>
           <view class="project-footer">
             <text class="project-price">¥{{ project.price }}</text>
-            <button class="cart-button" @click="addToCart(project)">
-              <uni-icons type="cart" size="16" color="#FFFFFF"></uni-icons>
+            <button class="cart-button" @click="openBottomSheet(project)">
+              <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
             </button>
           </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部弹出框 -->
+    <view class="bottom-sheet" v-if="showBottomSheet">
+      <view class="sheet-overlay" @click="closeBottomSheet"></view>
+      <view class="sheet-content">
+        <view class="sheet-header">
+          <image :src="selectedProject.img" mode="aspectFill" class="selected-image"></image>
+          <view class="selected-info">
+            <text class="selected-name">{{ selectedProject.name }}</text>
+            <text class="selected-price">¥{{ selectedProject.price }}</text>
+          </view>
+          <view class="sheet-close" @click="closeBottomSheet">
+            <image src="/static/icons/close.svg" mode="aspectFit" class="close-icon"></image>
+          </view>
+        </view>
+        
+        <view class="sheet-body">
+          <!-- 时长选择 -->
+          <view class="option-section">
+            <text class="option-title">时长</text>
+            <view class="duration-options">
+              <view class="duration-option" 
+                :class="{ active: selectedDuration === duration }"
+                v-for="duration in durations" 
+                :key="duration"
+                @click="selectDuration(duration)"
+              >
+                <text>{{ duration }}</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 数量选择 -->
+          <view class="option-section">
+            <text class="option-title">数量</text>
+            <view class="quantity-selector">
+              <button class="quantity-btn" @click="decreaseQuantity">-</button>
+              <text class="quantity">{{ quantity }}</text>
+              <button class="quantity-btn" @click="increaseQuantity">+</button>
+            </view>
+          </view>
+          
+
+        </view>
+        
+        <!-- 底部按钮 -->
+        <view class="sheet-footer">
+          <button class="add-to-cart-btn" @click="confirmAddToCart">加入购物车</button>
+          <button class="buy-now-btn" @click="buyNow">立即购买</button>
         </view>
       </view>
     </view>
@@ -47,6 +99,9 @@
 
 <script>
 import { ref, computed } from 'vue';
+
+// 导入公共的添加购物车功能
+import { useAddToCart } from '../../utils/cart-utils';
 
 // 直接导入图片
 import img1 from '../../static/items/wxpic_202508220008253.jpg';
@@ -154,10 +209,22 @@ export default {
       currentCategory.value = categoryId;
     };
 
-    // 添加到购物车
-    const addToCart = (project) => {
-      uni.showToast({ title: `${project.name}已加入购物车`, icon: 'success' });
-    };
+    // 使用公共的添加购物车功能
+    const {
+      showBottomSheet,
+      selectedItem: selectedProject,
+      durationOptions: durations,
+      selectedDuration,
+      quantity,
+      itemStockCount: stockCount,
+      openBottomSheet,
+      closeBottomSheet,
+      selectDuration,
+      increaseQuantity,
+      decreaseQuantity,
+      confirmAddToCart,
+      buyNow
+    } = useAddToCart();
 
     // 返回首页
     const backToHome = () => {
@@ -170,8 +237,20 @@ export default {
       projects,
       filteredProjects,
       switchCategory,
-      addToCart,
-      backToHome
+      openBottomSheet,
+      closeBottomSheet,
+      selectDuration,
+      increaseQuantity,
+      decreaseQuantity,
+      confirmAddToCart,
+      buyNow,
+      backToHome,
+      showBottomSheet,
+      selectedProject,
+      durations,
+      selectedDuration,
+      quantity,
+      stockCount
     };
   }
 };
@@ -317,11 +396,178 @@ export default {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
-  background-color: #FF5000;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
+}
+
+/* 底部弹出框样式 */
+.bottom-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sheet-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.sheet-content {
+  background-color: #fff;
+  border-radius: 30rpx 30rpx 0 0;
+  padding: 30rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slide-up 0.3s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.selected-image {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 20rpx;
+  margin-right: 30rpx;
+}
+
+.selected-info {
+  flex: 1;
+}
+
+.selected-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.selected-price {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #FF5000;
+  margin-top: 20rpx;
+  display: block;
+}
+
+.sheet-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.close-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.sheet-body {
+  margin-bottom: 40rpx;
+}
+
+.option-section {
+  margin-bottom: 40rpx;
+}
+
+.option-title {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.duration-options {
+  display: flex;
+  gap: 20rpx;
+}
+
+.duration-option {
+  padding: 15rpx 30rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.duration-option.active {
+  border-color: #FF5000;
+  color: #FF5000;
+  background-color: rgba(255, 80, 0, 0.05);
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  width: 200rpx;
+}
+
+.quantity-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background-color: #f5f5f5;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.quantity {
+  margin: 0 30rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.stock-info {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 20rpx;
+}
+
+.sheet-footer {
+  display: flex;
+  gap: 20rpx;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  height: 90rpx;
+  background-color: #FF5000;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 45rpx;
+}
+
+.buy-now-btn {
+  flex: 1;
+  height: 90rpx;
+  background-color: #FFA500;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 45rpx;
 }
 
 @keyframes slide-up {
