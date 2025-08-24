@@ -9,6 +9,30 @@
 			}
 		},
 		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/distribution/distribution",
+			"style": {
+				"navigationBarTitleText": "分销中心",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/member/member",
+			"style": {
+				"navigationBarTitleText": "会员中心",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/projects/projects",
 			"style": {
 				"navigationBarTitleText": "项目列表",
@@ -65,7 +89,7 @@
 			{
 				"pagePath": "pages/cart/cart",
 				"text": "购物车",
-				"iconPath": "/static/icons/cart1.svg",
+				"iconPath": "/static/icons/cart.svg",
 				"selectedIconPath": "/static/icons/cart-active.svg"
 			},
 			{

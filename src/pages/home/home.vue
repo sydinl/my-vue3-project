@@ -2,9 +2,11 @@
   <view class="container">
     <!-- 顶部导航栏 -->
     <view class="header">
-      <text class="header-title">盛唐水镜</text>
+      <view class="search-bar" @click="gotoSearch">
+        <uni-icons type="search" size="16" color="#999"></uni-icons>
+        <text class="search-placeholder">搜索项目名称...</text>
+      </view>
       <view class="header-actions">
-        <uni-icons type="search" size="20"></uni-icons>
         <uni-icons type="bell" size="20" class="ml-4"></uni-icons>
         <uni-icons type="person" size="20" class="ml-4"></uni-icons>
       </view>
@@ -31,12 +33,14 @@
     <!-- 中心入口 -->
     <view class="center-entry">
       <view class="entry-item" @click="goToDistributionCenter">
-        <image :src="entry1" mode="aspectFit" class="entry-image"></image>
-        <text class="entry-text">分销中心</text>
+        <view class="entry-icon distribution-icon">
+          <image :src="entry1" mode="aspectFit" class="entry-image"></image>
+        </view>
       </view>
       <view class="entry-item" @click="goToMemberCenter">
-        <image :src="entry2" mode="aspectFit" class="entry-image"></image>
-        <text class="entry-text">会员中心</text>
+        <view class="entry-icon member-icon">
+          <image :src="entry2" mode="aspectFit" class="entry-image"></image>
+        </view>
       </view>
     </view>
 
@@ -142,8 +146,8 @@
 import { ref } from 'vue';
 
 // 直接导入图片
-import slide1 from '../../static/items/wxpic_20250822000826.jpg';
-import slide2 from '../../static/items/wxpic_202508220008261.jpg';
+import slide1 from '../../static/items/wxpic_head_20250822000722.jpg';
+import slide2 from '../../static/items/wxpic_head_20250822000825.jpg';
 import slide3 from '../../static/items/wxpic_202508220008262.jpg';
 import service1 from '../../static/items/wxpic_202508220008253.jpg';
 import service2 from '../../static/items/wxpic_202508220008254.jpg';
@@ -154,8 +158,9 @@ import tech2 from '../../static/items/wxpic_202508220008264.jpg';
 import tech3 from '../../static/items/wxpic_202508220008265.jpg';
 import tech4 from '../../static/items/wxpic_202508220008266.jpg';
 import avatar1 from '../../static/items/wxpic_202508220008267.jpg';
-import entry1 from '../../static/items/wxpic_202508220008251.jpg';
-import entry2 from '../../static/items/wxpic_202508220008252.jpg';
+// 导入新的中心入口图片
+import entry1 from '../../static/items/distribution-certificate.svg';
+import entry2 from '../../static/items/member-certificate.svg';
 
 // 添加调试信息
 console.log('页面加载 - 检查图片路径问题');
@@ -167,6 +172,13 @@ export default {
     console.log('首页加载完成');
   },
   setup() {
+    // 跳转到搜索页面
+    const gotoSearch = () => {
+      uni.navigateTo({
+        url: '/pages/search/search'
+      });
+    };
+    
     // 轮播图数据 - 使用导入的图片变量
     const slides = ref([
       { img: slide1, text: '新品上市' },
@@ -208,12 +220,12 @@ export default {
 
     // 导航到分销中心
     const goToDistributionCenter = () => {
-      uni.showToast({ title: '前往分销中心', icon: 'none' });
+      uni.navigateTo({ url: '/pages/distribution/distribution' });
     };
 
     // 导航到会员中心
     const goToMemberCenter = () => {
-      uni.showToast({ title: '前往会员中心', icon: 'none' });
+      uni.navigateTo({ url: '/pages/member/member' });
     };
 
     // 添加到购物车
@@ -255,7 +267,8 @@ export default {
       buyNow,
       viewMorePackages,
       viewAllTechnicians,
-      viewAllReviews
+      viewAllReviews,
+      gotoSearch
     };
   }
 };
@@ -270,18 +283,28 @@ export default {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20rpx 30rpx;
-  background-color: #fff;
-}
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20rpx 30rpx;
+    background-color: #fff;
+  }
 
-.header-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-}
+  .search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 10rpx 20rpx;
+    background-color: #f5f5f5;
+    border-radius: 30rpx;
+    margin-right: 20rpx;
+  }
+
+  .search-placeholder {
+    margin-left: 10rpx;
+    font-size: 28rpx;
+    color: #999;
+  }
 
 .header-actions {
   display: flex;
@@ -316,27 +339,35 @@ export default {
 .center-entry {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  padding: 30rpx;
+  padding: 8rpx;
   background-color: #fff;
   margin-bottom: 20rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  margin: 20rpx 0;
 }
 
 .entry-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 12rpx;
+}
+
+.entry-icon {
+  width: 95%;
+  padding: 0;
 }
 
 .entry-image {
-  width: 150rpx;
-  height: 150rpx;
-  border-radius: 50%;
+  width: 100%;
+  height: 200rpx;
+  border-radius: 10rpx;
 }
 
 .entry-text {
-  margin-top: 20rpx;
-  font-size: 28rpx;
-  color: #333;
+  display: none;
 }
 
 .services-section,
