@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目列表 - 足道SPA小程序</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <!-- 自定义配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B6B',
+                        secondary: '#4ECDC4',
+                        dark: '#292F36',
+                        light: '#F7FFF7',
+                        accent: '#FFD166'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .animate-slide-up {
+                animation: slideUp 0.5s ease-out;
+            }
+            .category-active {
+                color: #FF6B6B;
+                border-bottom: 2px solid #FF6B6B;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-dark">
+    <!-- 顶部导航栏 -->
+    <header class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-dark">服务项目</h1>
+            <div class="flex items-center gap-4">
+                <a href="spa-index.html" class="text-gray-600">
+                    <i class="fa fa-home text-xl"></i>
+                </a>
+                <a href="#" class="text-gray-600">
+                    <i class="fa fa-search text-xl"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 分类导航 -->
+        <div class="border-t border-gray-100">
+            <div class="container mx-auto overflow-x-auto whitespace-nowrap py-2">
+                <div class="inline-flex px-4 py-2 category-active" data-category="all">全部</div>
+                <div class="inline-flex px-4 py-2 text-gray-600" data-category="spa">SPA</div>
+                <div class="inline-flex px-4 py-2 text-gray-600" data-category="foot">足道</div>
+                <div class="inline-flex px-4 py-2 text-gray-600" data-category="small">小项</div>
+                <div class="inline-flex px-4 py-2 text-gray-600" data-category="other">其他</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- SPA分类 -->
+        <div class="mb-8 animate-slide-up" data-category-type="spa">
+            <h2 class="text-lg font-semibold mb-4 text-dark">SPA项目</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- SPA项目1 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008261.jpg" alt="皇室SPA" class="w-full h-48 object-cover">
+                        <span class="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">热门</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">皇室SPA</h3>
+                            <span class="text-primary font-bold">¥588</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">奢华SPA体验，结合精油按摩与香薰疗法，舒缓身心，放松压力。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">90分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SPA项目2 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008262.jpg" alt="精油SPA" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">精油SPA</h3>
+                            <span class="text-primary font-bold">¥458</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">精选天然精油，专业按摩手法，缓解疲劳，改善睡眠质量。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">70分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SPA项目3 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008263.jpg" alt="香薰SPA" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">香薰SPA</h3>
+                            <span class="text-primary font-bold">¥398</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">芳香疗法结合轻柔按摩，营造舒适氛围，舒缓情绪压力。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">60分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 足道分类 -->
+        <div class="mb-8 animate-slide-up" data-category-type="foot">
+            <h2 class="text-lg font-semibold mb-4 text-dark">足道项目</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 足道项目1 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008251.jpg" alt="经典足道" class="w-full h-48 object-cover">
+                        <span class="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full">热门</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">经典足道</h3>
+                            <span class="text-primary font-bold">¥198</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">传统中医足部按摩，刺激穴位，促进血液循环，缓解疲劳。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">60分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 足道项目2 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008252.jpg" alt="皇室足道" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">皇室足道</h3>
+                            <span class="text-primary font-bold">¥258</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">高级足部护理，包含泡脚、去角质、按摩等多项服务，体验尊贵享受。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">80分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 足道项目3 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008253.jpg" alt="中药足道" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">中药足道</h3>
+                            <span class="text-primary font-bold">¥228</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">特制中药泡脚，配合专业按摩手法，驱寒祛湿，调理身体。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">70分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 小项分类 -->
+        <div class="mb-8 animate-slide-up" data-category-type="small">
+            <h2 class="text-lg font-semibold mb-4 text-dark">小项服务</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 小项1 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008254.jpg" alt="肩颈护理" class="w-full h-48 object-cover">
+                        <span class="absolute top-2 left-2 bg-accent text-dark text-xs px-2 py-1 rounded-full">优惠</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">肩颈护理</h3>
+                            <span class="text-primary font-bold">¥128</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">专业肩颈按摩，缓解办公室久坐带来的肩颈不适。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">30分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 小项2 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008264.jpg" alt="头部按摩" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">头部按摩</h3>
+                            <span class="text-primary font-bold">¥98</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">舒缓头部压力，改善睡眠，缓解头痛症状。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">20分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 小项3 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008265.jpg" alt="手部护理" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">手部护理</h3>
+                            <span class="text-primary font-bold">¥88</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">滋润双手，去除角质，让双手恢复光滑细腻。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">20分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 其他分类 -->
+        <div class="mb-8 animate-slide-up" data-category-type="other">
+            <h2 class="text-lg font-semibold mb-4 text-dark">其他服务</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 其他项目1 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008266.jpg" alt="泰式按摩" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">泰式按摩</h3>
+                            <span class="text-primary font-bold">¥358</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">传统泰式按摩技法，拉伸身体，促进血液循环，增强身体柔韧性。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">80分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 其他项目2 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_202508220008267.jpg" alt="全身按摩" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">全身按摩</h3>
+                            <span class="text-primary font-bold">¥328</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">全身舒缓按摩，缓解全身疲劳，放松身心。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">70分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 其他项目3 -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <img src="items/微信图片_20250822000826.jpg" alt="精油开背" class="w-full h-48 object-cover">
+                        <span class="absolute top-2 left-2 bg-accent text-dark text-xs px-2 py-1 rounded-full">优惠</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-base font-semibold">精油开背</h3>
+                            <span class="text-primary font-bold">¥268</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">背部精油按摩，缓解背部肌肉紧张，改善姿势。</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-400">50分钟</span>
+                            <button class="bg-primary text-white text-sm px-4 py-2 rounded-full flex items-center hover:bg-opacity-90 transition-colors">
+                                <i class="fa fa-shopping-cart mr-1"></i> 加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部导航栏 -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-around py-3">
+                <a href="spa-index.html" class="flex flex-col items-center text-gray-500">
+                    <i class="fa fa-home text-xl"></i>
+                    <span class="text-xs mt-1">首页</span>
+                </a>
+                <a href="projects.html" class="flex flex-col items-center text-primary">
+                    <i class="fa fa-th-large text-xl"></i>
+                    <span class="text-xs mt-1">项目</span>
+                </a>
+                <a href="#" class="flex flex-col items-center text-gray-500">
+                    <i class="fa fa-shopping-cart text-xl"></i>
+                    <span class="text-xs mt-1">购物车</span>
+                </a>
+                <a href="#" class="flex flex-col items-center text-gray-500">
+                    <i class="fa fa-user text-xl"></i>
+                    <span class="text-xs mt-1">我的</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 分类筛选功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有分类按钮
+            const categoryButtons = document.querySelectorAll('[data-category]');
+            // 获取所有分类内容
+            const categoryContents = document.querySelectorAll('[data-category-type]');
+            
+            // 为每个分类按钮添加点击事件
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有按钮的活跃状态
+                    categoryButtons.forEach(btn => {
+                        btn.classList.remove('category-active');
+                        btn.classList.add('text-gray-600');
+                    });
+                    
+                    // 添加当前按钮的活跃状态
+                    this.classList.add('category-active');
+                    this.classList.remove('text-gray-600');
+                    
+                    // 获取当前分类
+                    const category = this.getAttribute('data-category');
+                    
+                    // 筛选显示对应分类的内容
+                    categoryContents.forEach(content => {
+                        if (category === 'all' || content.getAttribute('data-category-type') === category) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // 购物车按钮点击效果
+            const cartIcons = document.querySelectorAll('.fa-shopping-cart');
+            cartIcons.forEach(icon => {
+                // 找到最近的可点击元素
+                const clickableElement = icon.closest('button');
+                if (clickableElement) {
+                    clickableElement.addEventListener('click', function() {
+                        this.classList.add('scale-95');
+                        setTimeout(() => {
+                            this.classList.remove('scale-95');
+                        }, 150);
+                        
+                        // 这里可以添加加入购物车的逻辑
+                        alert('已成功加入购物车！');
+                    });
+                }
+            });
+            
+            // 模拟数据加载完成后的动画
+            setTimeout(() => {
+                document.querySelectorAll('.animate-slide-up').forEach(el => {
+                    el.style.animation = 'slideUp 0.5s ease-out';
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>盛唐水镜 - 足道SPA小程序</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#D4A276', // 温暖的金色，代表奢华和舒适
+                        secondary: '#4E6E5D', // 深绿色，代表自然和放松
+                        accent: '#8B5A2B', // 棕色，代表木质和自然元素
+                        light: '#F9F5F0', // 米白色，代表纯净和舒适
+                        dark: '#333333', // 深灰色，代表专业和稳重
+                    },
+                    fontFamily: {
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-shadow {
+                box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.5s ease-in;
+            }
+            .animate-slide-up {
+                animation: slideUp 0.5s ease-out;
+            }
+            .scroll-smooth {
+                scroll-behavior: smooth;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-light font-sans text-dark antialiased">
+    <!-- 移动端容器 -->
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl overflow-hidden relative">
+        <!-- 顶部导航栏 -->
+        <header class="sticky top-0 z-50 bg-white shadow-sm">
+            <div class="flex items-center justify-between px-4 py-3">
+                <h1 class="text-xl font-bold text-dark">盛唐水镜</h1>
+                <div class="flex items-center space-x-4">
+                    <button class="relative text-dark">
+                        <i class="fa fa-search text-lg"></i>
+                    </button>
+                    <button class="relative text-dark">
+                        <i class="fa fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
+                    </button>
+                    <button class="relative text-dark">
+                        <i class="fa fa-user text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 轮播图 -->
+        <section class="relative h-52 bg-gray-200 overflow-hidden">
+            <div class="h-full w-full">
+                <img src="items/微信图片_20250822000826.jpg" alt="盛唐水镜SPA" class="h-full w-full object-cover">
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                <h2 class="text-white text-xl font-bold text-shadow animate-fade-in">尊享足道体验</h2>
+                <p class="text-white/90 text-sm animate-fade-in" style="animation-delay: 0.2s">放松身心，焕发活力</p>
+            </div>
+            <!-- 轮播指示器 -->
+            <div class="absolute bottom-2 right-2 flex space-x-1">
+                <span class="w-2 h-2 rounded-full bg-white"></span>
+                <span class="w-2 h-2 rounded-full bg-white/50"></span>
+                <span class="w-2 h-2 rounded-full bg-white/50"></span>
+            </div>
+        </section>
+
+        <!-- 中心入口 -->
+        <section class="px-4 py-4 bg-white">
+            <div class="grid grid-cols-2 gap-4">
+                <!-- 分销中心 -->
+                <div class="rounded-xl overflow-hidden card-shadow bg-primary/5 animate-slide-up flex items-center justify-between p-4 relative">
+                    <div>
+                        <h3 class="text-base font-semibold text-dark">分销中心</h3>
+                        <p class="text-xs text-gray-500 mt-1">分享赚钱，轻松收益</p>
+                        <button class="mt-2 bg-primary text-white text-xs py-1 px-3 rounded-full transition-all hover:shadow-md">
+                            立即加入
+                        </button>
+                    </div>
+                    <div class="w-16 h-16 flex items-center justify-center">
+                        <i class="fa fa-share-alt text-3xl text-primary/70"></i>
+                    </div>
+                </div>
+                
+                <!-- 会员中心 -->
+                <div class="rounded-xl overflow-hidden card-shadow bg-secondary/5 animate-slide-up" style="animation-delay: 0.1s">
+                    <div class="h-full flex items-center justify-between p-4 relative">
+                        <div>
+                            <h3 class="text-base font-semibold text-dark">会员中心</h3>
+                            <p class="text-xs text-gray-500 mt-1">专享特权，尊贵体验</p>
+                            <button class="mt-2 bg-secondary text-white text-xs py-1 px-3 rounded-full transition-all hover:shadow-md">
+                                会员详情
+                            </button>
+                        </div>
+                        <div class="w-16 h-16 flex items-center justify-center">
+                            <i class="fa fa-diamond text-3xl text-secondary/70"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 服务项目 -->
+        <section class="px-4 py-4 bg-white mt-2">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-dark">精选项目</h2>
+                <a href="projects.html" class="text-sm text-primary flex items-center">
+                    全部项目 <i class="fa fa-angle-right ml-1"></i>
+                </a>
+            </div>
+            <div class="space-y-4">
+                <!-- 项目卡片1 -->
+                <div class="rounded-xl overflow-hidden card-shadow animate-slide-up transform transition-all duration-300 hover:shadow-lg" style="animation-delay: 0.1s">
+                    <div class="flex">
+                        <div class="w-24 h-24">
+                            <img src="items/微信图片_202508220008251.jpg" alt="经典足道" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 p-3">
+                            <h3 class="font-medium text-dark">经典足道</h3>
+                            <p class="text-xs text-gray-500 mt-1">60分钟专业足部按摩</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-accent font-bold">¥128</span>
+                                <button class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition-transform hover:scale-110">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目卡片2 -->
+                <div class="rounded-xl overflow-hidden card-shadow animate-slide-up transform transition-all duration-300 hover:shadow-lg" style="animation-delay: 0.2s">
+                    <div class="flex">
+                        <div class="w-24 h-24">
+                            <img src="items/微信图片_202508220008252.jpg" alt="皇室SPA" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 p-3">
+                            <h3 class="font-medium text-dark">皇室SPA</h3>
+                            <p class="text-xs text-gray-500 mt-1">90分钟全身精油SPA</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-accent font-bold">¥268</span>
+                                <button class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition-transform hover:scale-110">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目卡片3 -->
+                <div class="rounded-xl overflow-hidden card-shadow animate-slide-up transform transition-all duration-300 hover:shadow-lg" style="animation-delay: 0.3s">
+                    <div class="flex">
+                        <div class="w-24 h-24">
+                            <img src="items/微信图片_202508220008253.jpg" alt="泰式按摩" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 p-3">
+                            <h3 class="font-medium text-dark">泰式按摩</h3>
+                            <p class="text-xs text-gray-500 mt-1">75分钟传统泰式拉伸</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-accent font-bold">¥198</span>
+                                <button class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition-transform hover:scale-110">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目卡片4 -->
+                <div class="rounded-xl overflow-hidden card-shadow animate-slide-up transform transition-all duration-300 hover:shadow-lg" style="animation-delay: 0.4s">
+                    <div class="flex">
+                        <div class="w-24 h-24">
+                            <img src="items/微信图片_202508220008254.jpg" alt="肩颈护理" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 p-3">
+                            <h3 class="font-medium text-dark">肩颈护理</h3>
+                            <p class="text-xs text-gray-500 mt-1">45分钟肩颈舒缓按摩</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-accent font-bold">¥158</span>
+                                <button class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition-transform hover:scale-110">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 热门套餐 -->
+        <section class="px-4 py-4 bg-white mt-2">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-dark">热门套餐</h2>
+                <a href="#" class="text-sm text-primary flex items-center">
+                    更多套餐 <i class="fa fa-angle-right ml-1"></i>
+                </a>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <!-- 套餐1 -->
+                <div class="rounded-xl overflow-hidden card-shadow animate-slide-up transform transition-all duration-300 hover:shadow-lg" style="animation-delay: 0.1s">
+                    <div class="h-32">
+                        <img src="items/微信图片_202508220008261.jpg" alt="放松套餐" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-medium text-dark text-sm">身心放松套餐</h3>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-accent font-bold text-sm">¥298</span>
+                            <span class="text-xs text-gray-500">120分钟</span>
+                        </div>
+                        <button class="mt-2 w-full bg-primary/10 text-primary text-xs py-1 rounded-full transition-colors hover:bg-primary hover:text-white">
+                            立即购买
+                        </button>
+                    </div>
+                </div>
+                <!-- 套餐2 -->
+                <div class="rounded-xl overflow-hidden card-shadow animate-slide-up transform transition-all duration-300 hover:shadow-lg" style="animation-delay: 0.2s">
+                    <div class="h-32">
+                        <img src="items/微信图片_202508220008262.jpg" alt="尊享套餐" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-medium text-dark text-sm">皇家尊享套餐</h3>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-accent font-bold text-sm">¥398</span>
+                            <span class="text-xs text-gray-500">150分钟</span>
+                        </div>
+                        <button class="mt-2 w-full bg-primary/10 text-primary text-xs py-1 rounded-full transition-colors hover:bg-primary hover:text-white">
+                            立即购买
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技师展示 -->
+        <section class="px-4 py-4 bg-white mt-2">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-dark">资深技师</h2>
+                <a href="#" class="text-sm text-primary flex items-center">
+                    查看全部 <i class="fa fa-angle-right ml-1"></i>
+                </a>
+            </div>
+            <div class="flex space-x-4 overflow-x-auto pb-2">
+                <!-- 技师1 -->
+                <div class="flex-shrink-0 text-center animate-slide-up" style="animation-delay: 0.1s">
+                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-primary mx-auto">
+                        <img src="items/微信图片_202508220008263.jpg" alt="技师张三" class="w-full h-full object-cover">
+                    </div>
+                    <p class="mt-2 text-sm font-medium">张技师</p>
+                    <p class="text-xs text-gray-500">10年经验</p>
+                </div>
+                <!-- 技师2 -->
+                <div class="flex-shrink-0 text-center animate-slide-up" style="animation-delay: 0.2s">
+                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-primary mx-auto">
+                        <img src="items/微信图片_202508220008264.jpg" alt="技师李四" class="w-full h-full object-cover">
+                    </div>
+                    <p class="mt-2 text-sm font-medium">李技师</p>
+                    <p class="text-xs text-gray-500">8年经验</p>
+                </div>
+                <!-- 技师3 -->
+                <div class="flex-shrink-0 text-center animate-slide-up" style="animation-delay: 0.3s">
+                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-primary mx-auto">
+                        <img src="items/微信图片_202508220008265.jpg" alt="技师王五" class="w-full h-full object-cover">
+                    </div>
+                    <p class="mt-2 text-sm font-medium">王技师</p>
+                    <p class="text-xs text-gray-500">12年经验</p>
+                </div>
+                <!-- 技师4 -->
+                <div class="flex-shrink-0 text-center animate-slide-up" style="animation-delay: 0.4s">
+                    <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-primary mx-auto">
+                        <img src="items/微信图片_202508220008266.jpg" alt="技师赵六" class="w-full h-full object-cover">
+                    </div>
+                    <p class="mt-2 text-sm font-medium">赵技师</p>
+                    <p class="text-xs text-gray-500">9年经验</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 评价展示 -->
+        <section class="px-4 py-4 bg-white mt-2 mb-16">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-dark">顾客评价</h2>
+                <a href="#" class="text-sm text-primary flex items-center">
+                    查看全部 <i class="fa fa-angle-right ml-1"></i>
+                </a>
+            </div>
+            <div class="space-y-3">
+                <!-- 评价1 -->
+                <div class="bg-light rounded-lg p-3 animate-slide-up" style="animation-delay: 0.1s">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 rounded-full overflow-hidden">
+                            <img src="items/微信图片_202508220008267.jpg" alt="顾客头像" class="w-full h-full object-cover">
+                        </div>
+                        <div class="ml-2">
+                            <p class="text-sm font-medium">张先生</p>
+                            <div class="flex text-primary text-xs">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600">服务非常专业，环境也很舒适，技师手法一流，下次还会再来！</p>
+                </div>
+                <!-- 评价2 -->
+                <div class="bg-light rounded-lg p-3 animate-slide-up" style="animation-delay: 0.2s">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 rounded-full overflow-hidden">
+                            <img src="items/微信图片_202508220008267.jpg" alt="顾客头像" class="w-full h-full object-cover">
+                        </div>
+                        <div class="ml-2">
+                            <p class="text-sm font-medium">李女士</p>
+                            <div class="flex text-primary text-xs">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600">环境安静优雅，SPA体验非常放松，精油的味道很舒服，整体很满意。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 底部导航栏 -->
+        <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 z-50">
+            <div class="flex justify-around items-center py-3">
+                <a href="#" class="flex flex-col items-center text-primary">
+                    <i class="fa fa-home text-xl"></i>
+                    <span class="text-xs mt-1">首页</span>
+                </a>
+                <a href="projects.html" class="flex flex-col items-center text-gray-500">
+                    <i class="fa fa-th-large text-xl"></i>
+                    <span class="text-xs mt-1">项目</span>
+                </a>
+                <a href="#" class="flex flex-col items-center text-gray-500">
+                    <div class="relative">
+                        <i class="fa fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">2</span>
+                    </div>
+                    <span class="text-xs mt-1">购物车</span>
+                </a>
+                <a href="#" class="flex flex-col items-center text-gray-500">
+                    <i class="fa fa-user text-xl"></i>
+                    <span class="text-xs mt-1">我的</span>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 简单的交互逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为购物车按钮添加点击效果
+            const cartButtons = document.querySelectorAll('.fa-shopping-cart');
+            cartButtons.forEach(icon => {
+                // 找到最近的可点击元素
+                const clickableElement = icon.closest('button, a');
+                if (clickableElement) {
+                    clickableElement.addEventListener('click', function() {
+                        // 只为项目列表中的购物车按钮添加动画效果
+                        if (this.tagName === 'BUTTON') {
+                            this.classList.add('scale-90');
+                            setTimeout(() => {
+                                this.classList.remove('scale-90');
+                            }, 200);
+                        }
+                        // 这里可以添加加入购物车的逻辑
+                    });
+                }
+            });
+
+            // 为立即购买按钮添加点击效果
+            // 修复选择器
+            const buyButtons = Array.from(document.querySelectorAll('button')).filter(button => button.textContent.includes('立即购买')).forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.add('bg-primary');
+                    this.classList.add('text-white');
+                    setTimeout(() => {
+                        this.classList.remove('bg-primary');
+                        this.classList.remove('text-white');
+                    }, 300);
+                    // 这里可以添加立即购买的逻辑
+                });
+            });
+
+            // 轮播图简单模拟
+            let currentSlide = 0;
+            const slides = ['items/微信图片_20250822000826.jpg', 'items/微信图片_202508220008261.jpg', 'items/微信图片_202508220008262.jpg'];
+            const slideContainer = document.querySelector('.h-52 .w-full img');
+            const indicators = document.querySelectorAll('.absolute.bottom-2.right-2 span');
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                slideContainer.classList.add('opacity-0');
+                setTimeout(() => {
+                    slideContainer.src = slides[currentSlide];
+                    slideContainer.classList.remove('opacity-0');
+                    // 更新指示器
+                    indicators.forEach((indicator, index) => {
+                        if (index === currentSlide) {
+                            indicator.classList.add('bg-white');
+                            indicator.classList.remove('bg-white/50');
+                        } else {
+                            indicator.classList.remove('bg-white');
+                            indicator.classList.add('bg-white/50');
+                        }
+                    });
+                }, 300);
+            }
+
+            // 自动轮播
+            setInterval(nextSlide, 5000);
+        });
+    </script>
+</body>
+</html>
