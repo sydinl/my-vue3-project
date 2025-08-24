@@ -37,13 +37,6 @@
 			"style": {
 				"navigationBarTitleText": "uni-app"
 			}
-		},
-		{
-			"path": "pages/icon-test/icon-test",
-			"style": {
-				"navigationBarTitleText": "图标测试",
-				"enablePullDownRefresh": false
-			}
 		}
 	],
 	"globalStyle": {
@@ -72,7 +65,7 @@
 			{
 				"pagePath": "pages/cart/cart",
 				"text": "购物车",
-				"iconPath": "/static/icons/cart.svg",
+				"iconPath": "/static/icons/cart1.svg",
 				"selectedIconPath": "/static/icons/cart-active.svg"
 			},
 			{

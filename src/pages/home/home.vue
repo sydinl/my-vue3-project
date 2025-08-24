@@ -59,7 +59,7 @@
               <view class="service-footer">
                 <text class="service-price">¥{{ service.price }}</text>
                 <button class="cart-button" @click="addToCart(service)">
-                  <uni-icons type="cart" size="14" color="#FFFFFF"></uni-icons>
+                  <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
                 </button>
               </view>
             </view>
@@ -430,7 +430,6 @@ export default {
   width: 50rpx;
   height: 50rpx;
   border-radius: 50%;
-  background-color: #FF5000;
   display: flex;
   justify-content: center;
   align-items: center;

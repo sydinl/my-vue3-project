@@ -12,7 +12,7 @@
     <!-- 购物车内容 -->
     <view class="cart-content">
       <view v-if="cartItems.length === 0" class="empty-cart">
-        <uni-icons type="cart" size="80" color="#CCCCCC"></uni-icons>
+        <image src="/static/icons/cart1.svg" mode="aspectFit" style="width: 80px; height: 80px; opacity: 0.6;"></image>
         <text class="empty-text">购物车还是空的，去添加一些项目吧~</text>
         <button class="go-shopping" @click="goToProjects">去选购</button>
       </view>

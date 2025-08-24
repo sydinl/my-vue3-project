@@ -4,11 +4,14 @@ import uni from '@dcloudio/vite-plugin-uni'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    uni(),
+    uni({
+      vueOptions: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith('uni-')
+        }
+      }
+    }),
   ],
-  compilerOptions: {
-    isCustomElement: (tag) => tag.startsWith('uni-')
-  },
   // 静态资源处理配置
   assetsInclude: ['**/*.jpg', '**/*.jpeg', '**/*.png', '**/*.gif', '**/*.svg'],
   resolve: {
