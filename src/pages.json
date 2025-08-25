@@ -25,6 +25,30 @@
 			}
 		},
 		{
+			"path": "pages/distribution/distribution-commission",
+			"style": {
+				"navigationBarTitleText": "分销佣金",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/distribution/distribution-orders",
+			"style": {
+				"navigationBarTitleText": "分销订单",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/distribution/withdraw-details",
+			"style": {
+				"navigationBarTitleText": "提现明细",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/member/member",
 			"style": {
 				"navigationBarTitleText": "会员中心",

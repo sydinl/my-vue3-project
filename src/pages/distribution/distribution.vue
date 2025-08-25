@@ -117,28 +117,22 @@ export default {
 
     // 查看分销佣金
     const viewDistributionCommission = () => {
-      uni.showToast({
-        title: '查看分销佣金',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/distribution/distribution-commission'
       });
     };
 
     // 查看分销订单
     const viewDistributionOrders = () => {
-      uni.showToast({
-        title: '查看分销订单',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/distribution/distribution-orders'
       });
     };
 
     // 查看提现明细
     const viewWithdrawDetails = () => {
-      uni.showToast({
-        title: '查看提现明细',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/distribution/withdraw-details'
       });
     };
 

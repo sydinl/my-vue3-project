@@ -104,14 +104,19 @@ import { ref, computed } from 'vue';
 import { useAddToCart } from '../../utils/cart-utils';
 
 // 直接导入图片
-import img1 from '../../static/items/wxpic_202508220008253.jpg';
-import img2 from '../../static/items/wxpic_202508220008254.jpg';
-import img3 from '../../static/items/wxpic_20250822000826.jpg';
-import img4 from '../../static/items/wxpic_202508220008261.jpg';
-import img5 from '../../static/items/wxpic_202508220008262.jpg';
-import img6 from '../../static/items/wxpic_202508220008263.jpg';
-import img7 from '../../static/items/wxpic_202508220008264.jpg';
-import img8 from '../../static/items/wxpic_202508220008265.jpg';
+import tangzudao from '../../static/items/wxpic_202508220008253.jpg';
+import yuespa from '../../static/items/wxpic_202508220008254.jpg';
+import mengspa from '../../static/items/wxpic_20250822000826.jpg';
+import qingspa from '../../static/items/wxpic_202508220008261.jpg';
+import yunspa from '../../static/items/wxpic_202508220008262.jpg';
+import jingzudao from '../../static/items/wxpic_202508220008263.jpg';
+import chayi from '../../static/items/wxpic_202508220008264.jpg';
+import chanspa from '../../static/items/wxpic_202508220008265.jpg';
+import yispa from '../../static/items/wxpic_202508220008266.jpg';
+import xiaoxiang from '../../static/items/wxpic_202508220008267.jpg';
+import shuizudao from '../../static/items/wxpic_20250824234702.jpg';
+import xiyucuozao from '../../static/items/wxpic_202508220008251.jpg';
+import shengzudao from '../../static/items/wxpic_202508220008252.jpg';
 
 export default {
   name: 'ProjectsPage',
@@ -132,67 +137,107 @@ export default {
     const projects = ref([
       {
         id: 1,
-        name: '经典足道',
-        desc: '60分钟足部按摩，放松身心，缓解疲劳',
+        name: '唐足道',
+        desc: '90分钟+精致自助餐',
         price: 128,
         category: 'foot',
-        img: img1
+        img: tangzudao
       },
       {
         id: 2,
-        name: '皇室SPA',
-        desc: '90分钟全身精油按摩，深层放松，焕发活力',
+        name: '韵SPA',
+        desc: '120分钟+精致自助餐',
         price: 268,
         category: 'spa',
-        img: img2
+        img: yunspa
       },
       {
         id: 3,
-        name: '泰式按摩',
-        desc: '75分钟传统泰式手法，舒筋活络，调理身体',
+        name: '梦SPA',
+        desc: '100分钟+精致自助餐',
         price: 198,
         category: 'spa',
-        img: img3
+        img: mengspa
       },
       {
         id: 4,
-        name: '肩颈护理',
-        desc: '45分钟肩颈舒缓按摩，缓解肩颈僵硬和疼痛',
+        name: '清SPA',
+        desc: '80分钟+精致自助餐',
         price: 158,
-        category: 'small',
-        img: img4
+        category: 'spa',
+        img: qingspa
       },
       {
         id: 5,
-        name: '头部按摩',
-        desc: '30分钟头部舒缓按摩，缓解头痛和压力',
-        price: 88,
+        name: '小项四选一',
+        desc: '20分钟 采耳/修脚/刮痧/拔罐',
+        price: 68,
         category: 'small',
-        img: img5
+        img: xiaoxiang
       },
       {
         id: 6,
-        name: '背部精油按摩',
-        desc: '60分钟背部精油按摩，缓解背部疲劳和紧张',
-        price: 188,
+        name: '怡SPA',
+        desc: '80分钟+精致自助餐',
+        price: 508,
         category: 'spa',
-        img: img6
+        img: yispa
+      },
+       {
+        id: 11,
+        name: '禅SPA',
+        desc: '100分钟+精致自助餐',
+        price: 688,
+        category: 'spa',
+        img: chanspa
+      },
+        {
+        id: 12,
+        name: '悦SPA',
+        desc: '90分钟+精致自助餐',
+        price: 388,
+        category: 'spa',
+        img: yuespa
       },
       {
         id: 7,
-        name: '足疗套餐',
-        desc: '90分钟足部护理套餐，包含泡脚、按摩和护理',
+        name: '盛足道',
+        desc: '70分钟+精致自助餐',
         price: 168,
         category: 'foot',
-        img: img7
+        img: shengzudao
       },
       {
         id: 8,
-        name: '全身推拿',
-        desc: '90分钟传统中医推拿，调理气血，舒缓疲劳',
-        price: 228,
+        name: '水足道',
+        desc: '90分钟+精致自助餐',
+        price: 288,
+        category: 'foot',
+        img: shuizudao
+      },
+       {
+        id: 9,
+        name: '镜足道',
+        desc: '100分钟+精致自助餐',
+        price: 338,
+        category: 'foot',
+        img: jingzudao
+      },
+       {
+        id: 10,
+        name: '茶艺',
+        desc: '60分钟',
+        price: 198,
         category: 'other',
-        img: img8
+        img: chayi
+      },
+       {
+        id: 13,
+        name: '洗浴搓澡',
+        desc: '150分钟',
+        price: 98,
+        category: 'other',
+        img: xiyucuozao
       }
     ]);
 

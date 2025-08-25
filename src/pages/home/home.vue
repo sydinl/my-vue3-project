@@ -72,30 +72,6 @@
       </view>
     </view>
 
-    <!-- 热门套餐 -->
-    <view class="packages-section">
-      <view class="section-header">
-        <text class="section-title">热门套餐</text>
-        <view class="more-link" @click="viewMorePackages">
-          <text>更多套餐</text>
-          <uni-icons type="right" size="12"></uni-icons>
-        </view>
-      </view>
-      <view class="packages-list">
-        <view class="package-card" v-for="(pkg, index) in packages" :key="index" :animation-delay="index * 0.1 + 's'">
-          <image :src="pkg.img" mode="aspectFill" class="package-image"></image>
-          <view class="package-info">
-            <text class="package-name">{{ pkg.name }}</text>
-            <view class="package-footer">
-              <text class="package-price">¥{{ pkg.price }}</text>
-              <text class="package-duration">{{ pkg.duration }}</text>
-            </view>
-            <button class="buy-button" @click="buyNow(pkg)">立即购买</button>
-          </view>
-        </view>
-      </view>
-    </view>
-
     <!-- 技师展示 -->
     <view class="technicians-section">
       <view class="section-header">
