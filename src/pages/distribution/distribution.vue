@@ -138,28 +138,22 @@ export default {
 
     // 查看我的团队
     const viewMyTeam = () => {
-      uni.showToast({
-        title: '查看我的团队',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/distribution/my-team'
       });
     };
 
     // 查看推广二维码
     const viewPromotionQRCode = () => {
-      uni.showToast({
-        title: '查看推广二维码',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/distribution/promotion-qrcode'
       });
     };
 
     // 查看分销排行
     const viewDistributionRanking = () => {
-      uni.showToast({
-        title: '查看分销排行',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/distribution/distribution-ranking'
       });
     };
 

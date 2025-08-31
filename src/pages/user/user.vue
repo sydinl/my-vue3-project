@@ -174,75 +174,55 @@ export default {
   setup() {
     // 查看所有订单
     const viewAllOrders = () => {
-      uni.showToast({
-        title: '查看所有订单',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/orders/my-orders?status=all'
       });
     };
 
     // 查看指定状态订单
     const viewOrders = (status) => {
-      let title = '';
-      switch (status) {
-        case 'pending':
-          title = '待付款订单';
-          break;
-        case 'shipping':
-          title = '待发货订单';
-          break;
-        case 'delivered':
-          title = '待收货订单';
-          break;
-        case 'completed':
-          title = '已完成订单';
-          break;
-        case 'aftersale':
-          title = '售后订单';
-          break;
-        default:
-          title = '订单列表';
+      // 根据用户需求，将待服务状态映射为待发货状态
+      if (status === 'shipping') {
+        uni.navigateTo({
+          url: '/pages/orders/my-orders?status=shipping'
+        });
+      } else if (status === 'aftersale') {
+        // 跳转到售后页面
+        uni.navigateTo({
+          url: '/pages/orders/after-sale'
+        });
+      } else {
+        uni.navigateTo({
+          url: `/pages/orders/my-orders?status=${status}`
+        });
       }
-      uni.showToast({
-        title: `查看${title}`,
-        icon: 'none',
-        duration: 2000
-      });
     };
 
     // 查看积分
     const viewPoints = () => {
-      uni.showToast({
-        title: '查看积分',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/assets/points-detail'
       });
     };
 
     // 查看余额
     const viewBalance = () => {
-      uni.showToast({
-        title: '查看余额',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/assets/balance-record'
       });
     };
 
     // 查看优惠券
     const viewCoupons = () => {
-      uni.showToast({
-        title: '查看优惠券',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/assets/my-coupons'
       });
     };
 
     // 查看卡券
     const viewCards = () => {
-      uni.showToast({
-        title: '查看卡券',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/assets/my-cards'
       });
     };
 
@@ -273,10 +253,8 @@ export default {
 
     // 查看个人资料
     const viewPersonalInfo = () => {
-      uni.showToast({
-        title: '查看个人资料',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/user/personal-info'
       });
     };
 
