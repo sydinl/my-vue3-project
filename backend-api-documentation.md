@@ -1,934 +1,483 @@
-# SPA休闲会所项目后端接口文档
+# 后端API接口文档
 
-## 文档信息
+## 1. 用户相关接口
 
-- 版本：1.0.0
-- 描述：SPA休闲会所项目后端接口文档
-
-## 接口列表
-
-### 1. 用户管理
-
-#### 1.1 用户登录
-
-- **接口名称**：用户登录
-- **接口路径**：`/api/user/login`
-- **请求方法**：POST
-- **接口描述**：用户登录接口
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | phone | string | 手机号 |
-  | password | string | 密码 |
-- **响应格式**：
+### 1.1 用户登录
+- **URL**: `/api/user/login`
+- **方法**: `POST`
+- **请求参数**: 
   ```json
   {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "token": "string, 用户token",
-      "userInfo": {
-        "userId": "string, 用户ID",
-        "nickname": "string, 用户昵称",
-        "avatar": "string, 用户头像",
-        "points": "number, 积分",
-        "balance": "number, 余额",
-        "couponCount": "number, 优惠券数量",
-        "cardCount": "number, 卡券数量"
+    "phone": "string", // 手机号
+    "password": "string" // 密码
+  }
+  ```
+- **返回结果**: 
+  ```json
+  {
+    "success": true/false,
+    "userId": "string",
+    "token": "string",
+    "userInfo": {}
+  }
+  ```
+
+### 1.2 获取用户信息
+- **URL**: `/api/user/info`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+- **返回结果**: 
+  ```json
+  {
+    "userId": "string",
+    "nickname": "string",
+    "realName": "string",
+    "avatar": "string",
+    "gender": "string",
+    "birthdate": "string",
+    "phone": "string",
+    "points": integer,
+    "balance": double,
+    "memberLevel": "string",
+    "addressCount": integer,
+    "favoriteCount": integer,
+    "couponCount": integer,
+    "cardCount": integer
+  }
+  ```
+
+### 1.3 更新用户信息
+- **URL**: `/api/user/info`
+- **方法**: `PUT`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - 请求体: 用户信息对象
+- **返回结果**: 更新后的用户信息对象
+
+### 1.4 修改密码
+- **URL**: `/api/user/password`
+- **方法**: `PUT`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - 请求体: 
+    ```json
+    {
+      "oldPassword": "string", // 旧密码
+      "newPassword": "string" // 新密码
+    }
+    ```
+- **返回结果**: 
+  ```json
+  {
+    "success": true/false
+  }
+  ```
+
+## 2. 项目相关接口
+
+### 2.1 获取项目列表
+- **URL**: `/api/project/list`
+- **方法**: `GET`
+- **请求参数**: 
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 项目分页列表
+
+### 2.2 按分类获取项目列表
+- **URL**: `/api/project/listByCategory`
+- **方法**: `GET`
+- **请求参数**: 
+  - `categoryId` (string): 分类ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 项目分页列表
+
+### 2.3 搜索项目
+- **URL**: `/api/project/search`
+- **方法**: `GET`
+- **请求参数**: 
+  - `keyword` (string): 搜索关键词
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 项目分页列表
+
+### 2.4 获取项目详情
+- **URL**: `/api/project/detail`
+- **方法**: `GET`
+- **请求参数**: 
+  - `projectId` (UUID): 项目ID
+- **返回结果**: 
+  ```json
+  {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "price": double,
+    "image": "string",
+    "duration": "string",
+    "category": "string",
+    "details": "string",
+    "salesCount": integer,
+    "rating": double,
+    "isHot": boolean,
+    "images": [ // 项目图片列表
+      {
+        "id": "string",
+        "projectId": "UUID",
+        "url": "string",
+        "description": "string"
       }
-    }
+    ],
+    "reviews": [ // 项目评价列表
+      // 评价对象
+    ],
+    "createTime": "date",
+    "updateTime": "date"
   }
   ```
 
-#### 1.2 获取用户信息
+## 3. 订单相关接口
 
-- **接口名称**：获取用户信息
-- **接口路径**：`/api/user/info`
-- **请求方法**：GET
-- **接口描述**：获取用户详细信息
-- **请求参数**：无
-- **响应格式**：
+### 3.1 创建订单
+- **URL**: `/api/order`
+- **方法**: `POST`
+- **请求参数**: 订单对象
+- **返回结果**: 创建的订单对象
+
+### 3.2 获取订单详情
+- **URL**: `/api/order/detail`
+- **方法**: `GET`
+- **请求参数**: 
+  - `orderId` (UUID): 订单ID
+- **返回结果**: 
   ```json
   {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "userId": "string, 用户ID",
-      "nickname": "string, 用户昵称",
-      "realName": "string, 真实姓名",
-      "avatar": "string, 用户头像",
-      "gender": "string, 性别",
-      "birthdate": "string, 出生日期",
-      "phone": "string, 手机号码",
-      "points": "number, 积分",
-      "balance": "number, 余额",
-      "memberLevel": "string, 会员等级",
-      "addressCount": "number, 地址数量",
-      "favoriteCount": "number, 收藏数量"
-    }
+    "orderId": "string",
+    "userId": "string",
+    "status": "string", // pending/shipping/completed/aftersale
+    "totalPrice": double,
+    "createTime": "date",
+    "payTime": "date",
+    "serviceTime": "date",
+    "addressId": "string",
+    "technicianId": "string",
+    "couponId": "string",
+    "remarks": "string",
+    "items": [ // 订单项列表
+      // 订单项对象
+    ]
   }
   ```
 
-#### 1.3 更新用户信息
+### 3.3 按用户ID查询订单列表
+- **URL**: `/api/order/list`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 订单分页列表
 
-- **接口名称**：更新用户信息
-- **接口路径**：`/api/user/update`
-- **请求方法**：POST
-- **接口描述**：更新用户个人资料
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | nickname | string | 昵称 |
-  | realName | string | 真实姓名 |
-  | gender | string | 性别 |
-  | birthdate | string | 出生日期 |
-  | avatar | string | 头像URL |
-- **响应格式**：
+### 3.4 按用户ID和状态查询订单列表
+- **URL**: `/api/order/listByStatus`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `status` (string): 订单状态
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 订单分页列表
+
+### 3.5 更新订单状态
+- **URL**: `/api/order/status`
+- **方法**: `PUT`
+- **请求参数**: 
+  - `orderId` (UUID): 订单ID
+  - `status` (string): 新状态
+- **返回结果**: 更新后的订单对象
+
+## 4. 技师相关接口
+
+### 4.1 获取技师列表
+- **URL**: `/api/technician/list`
+- **方法**: `GET`
+- **请求参数**: 
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 技师分页列表
+
+### 4.2 搜索技师
+- **URL**: `/api/technician/search`
+- **方法**: `GET`
+- **请求参数**: 
+  - `keyword` (string): 搜索关键词
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 技师分页列表
+
+### 4.3 按门店获取技师列表
+- **URL**: `/api/technician/byStore`
+- **方法**: `GET`
+- **请求参数**: 
+  - `storeId` (UUID): 门店ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 技师分页列表
+
+### 4.4 获取技师详情
+- **URL**: `/api/technician/detail`
+- **方法**: `GET`
+- **请求参数**: 
+  - `technicianId` (UUID): 技师ID
+- **返回结果**: 技师详情对象
+
+## 5. 评价相关接口
+
+### 5.1 获取项目评价列表
+- **URL**: `/api/review/projectReviews`
+- **方法**: `GET`
+- **请求参数**: 
+  - `projectId` (UUID): 项目ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 评价分页列表
+
+### 5.2 获取用户评价列表
+- **URL**: `/api/review/userReviews`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 评价分页列表
+
+### 5.3 添加评价
+- **URL**: `/api/review/add`
+- **方法**: `POST`
+- **请求参数**: 评价对象
+- **返回结果**: 添加的评价对象
+
+### 5.4 回复评价
+- **URL**: `/api/review/reply`
+- **方法**: `POST`
+- **请求参数**: 
+  - `reviewId` (UUID): 评价ID
+  - 请求体: 回复内容字符串
+- **返回结果**: 更新后的评价对象
+
+## 6. 门店相关接口
+
+### 6.1 获取门店列表
+- **URL**: `/api/store/list`
+- **方法**: `GET`
+- **请求参数**: 
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 门店分页列表
+
+### 6.2 搜索门店
+- **URL**: `/api/store/search`
+- **方法**: `GET`
+- **请求参数**: 
+  - `keyword` (string): 搜索关键词
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 门店分页列表
+
+### 6.3 按地区获取门店列表
+- **URL**: `/api/store/byArea`
+- **方法**: `GET`
+- **请求参数**: 
+  - `area` (string): 地区
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 门店分页列表
+
+### 6.4 获取门店详情
+- **URL**: `/api/store/detail`
+- **方法**: `GET`
+- **请求参数**: 
+  - `storeId` (UUID): 门店ID
+- **返回结果**: 门店详情对象
+
+## 7. 项目分类相关接口
+
+### 7.1 获取所有项目分类
+- **URL**: `/api/category/all`
+- **方法**: `GET`
+- **请求参数**: 无
+- **返回结果**: 项目分类列表
+
+### 7.2 获取分类详情
+- **URL**: `/api/category/detail`
+- **方法**: `GET`
+- **请求参数**: 
+  - `categoryId` (string): 分类ID
+- **返回结果**: 分类详情对象
+
+## 8. 积分相关接口
+
+### 8.1 获取用户积分余额
+- **URL**: `/api/point/balance`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+- **返回结果**: 
   ```json
   {
-    "code": "number, 状态码",
-    "message": "string, 提示信息"
+    "points": integer
   }
   ```
 
-#### 1.4 退出登录
+### 8.2 获取用户积分记录列表
+- **URL**: `/api/point/records`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 积分记录分页列表
 
-- **接口名称**：退出登录
-- **接口路径**：`/api/user/logout`
-- **请求方法**：POST
-- **接口描述**：用户退出登录
-- **请求参数**：无
-- **响应格式**：
+### 8.3 获取用户指定类型的积分记录
+- **URL**: `/api/point/recordsByType`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `type` (string): 记录类型
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 积分记录分页列表
+
+## 9. 会员卡相关接口
+
+### 9.1 获取用户卡券列表
+- **URL**: `/api/card/list`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 卡券分页列表
+
+### 9.2 获取用户指定类型的卡券
+- **URL**: `/api/card/listByType`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `type` (string): 卡券类型
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 卡券分页列表
+
+### 9.3 激活卡券
+- **URL**: `/api/card/activate`
+- **方法**: `POST`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `cardCode` (string): 卡券码
+- **返回结果**: 激活的卡券对象
+
+## 10. 余额相关接口
+
+### 10.1 获取用户余额
+- **URL**: `/api/balance/balance`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+- **返回结果**: 
   ```json
   {
-    "code": "number, 状态码",
-    "message": "string, 提示信息"
+    "balance": double
   }
   ```
 
-### 2. 订单管理
+### 10.2 获取用户余额记录列表
+- **URL**: `/api/balance/records`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 余额记录分页列表
 
-#### 2.1 获取订单列表
+### 10.3 获取用户指定类型的余额记录
+- **URL**: `/api/balance/recordsByType`
+- **方法**: `GET`
+- **请求参数**: 
+  - `userId` (UUID): 用户ID
+  - `type` (string): 记录类型
+  - `page` (int, 默认: 0): 页码
+  - `size` (int, 默认: 10): 每页条数
+- **返回结果**: 余额记录分页列表
 
-- **接口名称**：获取订单列表
-- **接口路径**：`/api/orders/list`
-- **请求方法**：GET
-- **接口描述**：获取用户订单列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | status | string | 订单状态: all/pending/shipping/completed/aftersale |
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "orderId": "string, 订单ID",
-          "status": "string, 订单状态",
-          "totalPrice": "number, 订单总价",
-          "createTime": "string, 创建时间",
-          "items": [
-            {
-              "itemId": "string, 项目ID",
-              "name": "string, 项目名称",
-              "price": "number, 价格",
-              "count": "number, 数量",
-              "image": "string, 图片URL"
-            }
-          ]
-        }
-      ]
-    }
-  }
-  ```
+## 11. 数据模型定义
 
-#### 2.2 获取订单详情
+### 11.1 Project (项目)
+```json
+{
+  "id": "string",
+  "name": "string",
+  "description": "string",
+  "price": double,
+  "image": "string",
+  "duration": "string",
+  "category": "string",
+  "details": "string",
+  "salesCount": integer,
+  "rating": double,
+  "isHot": boolean,
+  "images": [ProjectImage],
+  "reviews": [Review],
+  "createTime": "date",
+  "updateTime": "date"
+}
+```
 
-- **接口名称**：获取订单详情
-- **接口路径**：`/api/orders/detail`
-- **请求方法**：GET
-- **接口描述**：获取订单详细信息
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | orderId | string | 订单ID |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "orderId": "string, 订单ID",
-      "status": "string, 订单状态",
-      "totalPrice": "number, 订单总价",
-      "createTime": "string, 创建时间",
-      "payTime": "string, 支付时间",
-      "serviceTime": "string, 服务时间",
-      "address": "object, 服务地址信息",
-      "technician": "object, 技师信息",
-      "items": [
-        {
-          "itemId": "string, 项目ID",
-          "name": "string, 项目名称",
-          "price": "number, 价格",
-          "count": "number, 数量",
-          "image": "string, 图片URL",
-          "duration": "string, 时长"
-        }
-      ],
-      "remarks": "string, 备注"
-    }
-  }
-  ```
+### 11.2 UserInfo (用户信息)
+```json
+{
+  "userId": "string",
+  "nickname": "string",
+  "realName": "string",
+  "avatar": "string",
+  "gender": "string",
+  "birthdate": "string",
+  "phone": "string",
+  "points": integer,
+  "balance": double,
+  "memberLevel": "string",
+  "addressCount": integer,
+  "favoriteCount": integer,
+  "couponCount": integer,
+  "cardCount": integer
+}
+```
 
-#### 2.3 创建订单
+### 11.3 Order (订单)
+```json
+{
+  "orderId": "string",
+  "userId": "string",
+  "status": "string",
+  "totalPrice": double,
+  "createTime": "date",
+  "payTime": "date",
+  "serviceTime": "date",
+  "addressId": "string",
+  "technicianId": "string",
+  "couponId": "string",
+  "remarks": "string",
+  "items": [OrderItem]
+}
+```
 
-- **接口名称**：创建订单
-- **接口路径**：`/api/orders/create`
-- **请求方法**：POST
-- **接口描述**：创建新订单
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | items | array | 订单项目列表 |
-  | serviceTime | string | 服务时间 |
-  | addressId | string | 地址ID |
-  | technicianId | string | 技师ID |
-  | couponId | string | 优惠券ID |
-  | remarks | string | 备注 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "orderId": "string, 订单ID",
-      "totalPrice": "number, 订单总价",
-      "payUrl": "string, 支付链接"
-    }
-  }
-  ```
-
-### 3. 资产管理
-
-#### 3.1 获取积分明细
-
-- **接口名称**：获取积分明细
-- **接口路径**：`/api/assets/points/list`
-- **请求方法**：GET
-- **接口描述**：获取用户积分明细
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | type | string | 类型: all/income/expense |
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "points": "number, 当前积分",
-      "list": [
-        {
-          "id": "string, 记录ID",
-          "type": "string, 类型: income/expense",
-          "amount": "number, 积分数量",
-          "source": "string, 来源/去向",
-          "createTime": "string, 时间"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 3.2 获取余额记录
-
-- **接口名称**：获取余额记录
-- **接口路径**：`/api/assets/balance/list`
-- **请求方法**：GET
-- **接口描述**：获取用户余额记录
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | month | string | 月份格式: YYYY-MM |
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "balance": "number, 当前余额",
-      "list": [
-        {
-          "id": "string, 记录ID",
-          "type": "string, 类型: recharge/consume/withdraw",
-          "amount": "number, 金额",
-          "source": "string, 来源/去向",
-          "createTime": "string, 时间"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 3.3 余额充值
-
-- **接口名称**：余额充值
-- **接口路径**：`/api/assets/balance/recharge`
-- **请求方法**：POST
-- **接口描述**：用户余额充值
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | amount | number | 充值金额 |
-  | paymentMethod | string | 支付方式 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "orderId": "string, 充值订单ID",
-      "payUrl": "string, 支付链接"
-    }
-  }
-  ```
-
-#### 3.4 获取优惠券列表
-
-- **接口名称**：获取优惠券列表
-- **接口路径**：`/api/assets/coupons/list`
-- **请求方法**：GET
-- **接口描述**：获取用户优惠券列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | status | string | 状态: unused/used/expired |
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 优惠券ID",
-          "name": "string, 优惠券名称",
-          "value": "number, 优惠金额",
-          "minOrderAmount": "number, 最低消费金额",
-          "expiryDate": "string, 过期日期",
-          "status": "string, 状态"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 3.5 获取卡券列表
-
-- **接口名称**：获取卡券列表
-- **接口路径**：`/api/assets/cards/list`
-- **请求方法**：GET
-- **接口描述**：获取用户卡券列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | status | string | 状态: unused/used/expired |
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 卡券ID",
-          "name": "string, 卡券名称",
-          "type": "string, 卡券类型",
-          "balance": "number, 余额/次数",
-          "expiryDate": "string, 过期日期",
-          "status": "string, 状态"
-        }
-      ]
-    }
-  }
-  ```
-
-### 4. 项目管理
-
-#### 4.1 获取项目列表
-
-- **接口名称**：获取项目列表
-- **接口路径**：`/api/projects/list`
-- **请求方法**：GET
-- **接口描述**：获取服务项目列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | category | string | 项目分类 |
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-  | search | string | 搜索关键词 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 项目ID",
-          "name": "string, 项目名称",
-          "description": "string, 项目描述",
-          "price": "number, 价格",
-          "image": "string, 项目图片",
-          "duration": "string, 时长",
-          "category": "string, 分类"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.2 获取项目详情
-
-- **接口名称**：获取项目详情
-- **接口路径**：`/api/projects/detail`
-- **请求方法**：GET
-- **接口描述**：获取项目详细信息
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | projectId | string | 项目ID |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "id": "string, 项目ID",
-      "name": "string, 项目名称",
-      "description": "string, 项目描述",
-      "price": "number, 价格",
-      "images": "array, 项目图片列表",
-      "duration": "string, 时长",
-      "category": "string, 分类",
-      "details": "string, 项目详情",
-      "reviews": "array, 用户评价"
-    }
-  }
-  ```
-
-#### 4.3 获取项目分类列表
-
-- **接口名称**：获取项目分类列表
-- **接口路径**：`/api/projects/categories`
-- **请求方法**：GET
-- **接口描述**：获取项目分类列表
-- **请求参数**：无
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "list": [
-        {
-          "id": "string, 分类ID",
-          "name": "string, 分类名称",
-          "icon": "string, 分类图标",
-          "projectCount": "number, 项目数量"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.4 获取热门项目列表
-
-- **接口名称**：获取热门项目列表
-- **接口路径**：`/api/projects/hot`
-- **请求方法**：GET
-- **接口描述**：获取热门推荐项目列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 项目ID",
-          "name": "string, 项目名称",
-          "description": "string, 项目描述",
-          "price": "number, 价格",
-          "originalPrice": "number, 原价",
-          "image": "string, 项目图片",
-          "salesCount": "number, 销量",
-          "rating": "number, 评分"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.5 获取个性化推荐项目
-
-- **接口名称**：获取个性化推荐项目
-- **接口路径**：`/api/projects/recommend`
-- **请求方法**：GET
-- **接口描述**：获取基于用户偏好的个性化推荐项目
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 项目ID",
-          "name": "string, 项目名称",
-          "description": "string, 项目描述",
-          "price": "number, 价格",
-          "image": "string, 项目图片",
-          "reason": "string, 推荐理由"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.6 收藏/取消收藏项目
-
-- **接口名称**：收藏/取消收藏项目
-- **接口路径**：`/api/projects/favorite`
-- **请求方法**：POST
-- **接口描述**：收藏或取消收藏服务项目
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | projectId | string | 项目ID |
-  | action | string | 操作: add/remove |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "isFavorited": "boolean, 是否已收藏"
-    }
-  }
-  ```
-
-#### 4.7 获取用户收藏项目列表
-
-- **接口名称**：获取用户收藏项目列表
-- **接口路径**：`/api/projects/favorites`
-- **请求方法**：GET
-- **接口描述**：获取用户收藏的项目列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 项目ID",
-          "name": "string, 项目名称",
-          "price": "number, 价格",
-          "image": "string, 项目图片",
-          "collectTime": "string, 收藏时间"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.8 获取项目可用时间
-
-- **接口名称**：获取项目可用时间
-- **接口路径**：`/api/projects/available-time`
-- **请求方法**：GET
-- **接口描述**：获取指定项目和技师的可用预约时间
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | projectId | string | 项目ID |
-  | technicianId | string | 技师ID |
-  | date | string | 预约日期格式: YYYY-MM-DD |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "date": "string, 预约日期",
-      "availableSlots": [
-        {
-          "time": "string, 时间段开始时间",
-          "available": "boolean, 是否可用",
-          "reason": "string, 不可用原因"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.9 获取项目详情图片
-
-- **接口名称**：获取项目详情图片
-- **接口路径**：`/api/projects/detail-images`
-- **请求方法**：GET
-- **接口描述**：获取项目的详细图片列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | projectId | string | 项目ID |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "images": [
-        {
-          "id": "string, 图片ID",
-          "url": "string, 图片URL",
-          "description": "string, 图片描述"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 4.10 获取项目评论详情
-
-- **接口名称**：获取项目评论详情
-- **接口路径**：`/api/projects/reviews/detail`
-- **请求方法**：GET
-- **接口描述**：获取单个项目评论的详细信息
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | reviewId | string | 评论ID |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "id": "string, 评论ID",
-      "userId": "string, 用户ID",
-      "userName": "string, 用户名称",
-      "userAvatar": "string, 用户头像",
-      "projectId": "string, 项目ID",
-      "projectName": "string, 项目名称",
-      "rating": "number, 评分",
-      "content": "string, 评价内容",
-      "createTime": "string, 创建时间",
-      "images": "array, 图片列表",
-      "reply": "object, 商家回复信息"
-    }
-  }
-  ```
-
-#### 4.11 提交项目评价
-
-- **接口名称**：提交项目评价
-- **接口路径**：`/api/projects/reviews/submit`
-- **请求方法**：POST
-- **接口描述**：提交项目服务评价
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | orderId | string | 订单ID |
-  | projectId | string | 项目ID |
-  | rating | number | 评分(1-5) |
-  | content | string | 评价内容 |
-  | images | array | 图片列表 |
-  | technicianRating | number | 技师评分 |
-  | environmentRating | number | 环境评分 |
-  | serviceRating | number | 服务评分 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "reviewId": "string, 评论ID"
-    }
-  }
-  ```
-
-### 5. 技师管理
-
-#### 5.1 获取技师列表
-
-- **接口名称**：获取技师列表
-- **接口路径**：`/api/technicians/list`
-- **请求方法**：GET
-- **接口描述**：获取技师列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 技师ID",
-          "name": "string, 技师名称",
-          "avatar": "string, 技师头像",
-          "experience": "string, 工作经验",
-          "rating": "number, 评分",
-          "services": "array, 擅长项目"
-        }
-      ]
-    }
-  }
-  ```
-
-### 6. 评价管理
-
-#### 6.1 获取用户评价
-
-- **接口名称**：获取用户评价
-- **接口路径**：`/api/reviews/list`
-- **请求方法**：GET
-- **接口描述**：获取用户评价列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-  | projectId | string | 可选，项目ID |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 评价ID",
-          "userId": "string, 用户ID",
-          "userName": "string, 用户名称",
-          "userAvatar": "string, 用户头像",
-          "projectId": "string, 项目ID",
-          "projectName": "string, 项目名称",
-          "rating": "number, 评分",
-          "content": "string, 评价内容",
-          "createTime": "string, 创建时间",
-          "images": "array, 图片列表"
-        }
-      ]
-    }
-  }
-  ```
-
-### 7. 分销管理
-
-#### 7.1 获取分销中心数据
-
-- **接口名称**：获取分销中心数据
-- **接口路径**：`/api/distribution/data`
-- **请求方法**：GET
-- **接口描述**：获取用户分销中心数据
-- **请求参数**：无
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "totalCommission": "number, 总佣金",
-      "availableCommission": "number, 可提现佣金",
-      "teamCount": "number, 团队人数",
-      "todayOrderCount": "number, 今日订单数"
-    }
-  }
-  ```
-
-#### 7.2 获取分销订单列表
-
-- **接口名称**：获取分销订单列表
-- **接口路径**：`/api/distribution/orders`
-- **请求方法**：GET
-- **接口描述**：获取分销订单列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 分销订单ID",
-          "orderId": "string, 订单ID",
-          "customerName": "string, 客户名称",
-          "commission": "number, 佣金金额",
-          "status": "string, 状态",
-          "createTime": "string, 创建时间"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 7.3 获取提现记录
-
-- **接口名称**：获取提现记录
-- **接口路径**：`/api/distribution/withdrawals`
-- **请求方法**：GET
-- **接口描述**：获取提现记录列表
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | page | number | 页码 |
-  | pageSize | number | 每页数量 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "total": "number, 总条数",
-      "list": [
-        {
-          "id": "string, 提现记录ID",
-          "amount": "number, 提现金额",
-          "status": "string, 状态",
-          "createTime": "string, 申请时间",
-          "completeTime": "string, 完成时间"
-        }
-      ]
-    }
-  }
-  ```
-
-#### 7.4 申请提现
-
-- **接口名称**：申请提现
-- **接口路径**：`/api/distribution/applyWithdrawal`
-- **请求方法**：POST
-- **接口描述**：申请佣金提现
-- **请求参数**：
-  | 参数名 | 类型 | 描述 |
-  |--------|------|------|
-  | amount | number | 提现金额 |
-  | accountInfo | object | 提现账户信息 |
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "withdrawalId": "string, 提现记录ID"
-    }
-  }
-  ```
-
-### 8. 门店管理
-
-#### 8.1 获取门店地址列表
-
-- **接口名称**：获取门店地址列表
-- **接口路径**：`/api/stores/list`
-- **请求方法**：GET
-- **接口描述**：获取门店地址列表
-- **请求参数**：无
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "list": [
-        {
-          "id": "string, 门店ID",
-          "name": "string, 门店名称",
-          "address": "string, 门店地址",
-          "phone": "string, 联系电话",
-          "businessHours": "string, 营业时间",
-          "latitude": "number, 纬度",
-          "longitude": "number, 经度"
-        }
-      ]
-    }
-  }
-  ```
-
-### 9. 会员中心
-
-#### 9.1 获取会员中心信息
-
-- **接口名称**：获取会员中心信息
-- **接口路径**：`/api/member/center`
-- **请求方法**：GET
-- **接口描述**：获取会员中心信息
-- **请求参数**：无
-- **响应格式**：
-  ```json
-  {
-    "code": "number, 状态码",
-    "message": "string, 提示信息",
-    "data": {
-      "level": "string, 会员等级",
-      "points": "number, 当前积分",
-      "nextLevelPoints": "number, 升级所需积分",
-      "benefits": "array, 会员权益",
-      "levelRules": "array, 等级规则"
-    }
-  }
-  ```
+### 11.4 ProjectImage (项目图片)
+```json
+{
+  "id": "string",
+  "projectId": "UUID",
+  "url": "string",
+  "description": "string"
+}
+```

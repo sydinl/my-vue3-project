@@ -9,39 +9,56 @@
       <view class="header-right"></view>
     </view>
 
-    <!-- 分类导航 -->
-    <scroll-view scroll-x="true" class="category-scroll">
-      <view class="category-item" 
-        :class="{ active: currentCategory === category.id }"
-        v-for="category in categories" 
-        :key="category.id"
-        @click="switchCategory(category.id)"
-      >
-        <text>{{ category.name }}</text>
-        <view class="category-active-line" v-if="currentCategory === category.id"></view>
-      </view>
-    </scroll-view>
+    <!-- 错误提示 -->
+    <view v-if="error" class="error-message" @click="loadAllData">
+      <text>{{ error }}</text>
+      <text class="retry-text">点击重试</text>
+    </view>
 
-    <!-- 项目列表 -->
-    <view class="projects-list">
-      <view class="project-card" 
-        v-for="(project, index) in filteredProjects" 
-        :key="project.id"
-        :animation-delay="index * 0.1 + 's'"
-      >
-        <image :src="project.img" mode="aspectFill" class="project-image"></image>
-        <view class="project-info">
-          <text class="project-name">{{ project.name }}</text>
-          <text class="project-desc">{{ project.desc }}</text>
-          <view class="project-footer">
-            <text class="project-price">¥{{ project.price }}</text>
-            <button class="cart-button" @click="openBottomSheet(project)">
-              <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
-            </button>
+    <!-- 加载状态 -->
+    <view v-if="loading" class="loading-container">
+      <uni-load-more :content-text="{content: '加载中...'}" :loading="loading"></uni-load-more>
+    </view>
+
+    <!-- 内容区域 -->
+    <template v-else-if="!loading && !error">
+      <!-- 分类导航 -->
+      <scroll-view scroll-x="true" class="category-scroll">
+        <view class="category-item" 
+          :class="{ active: currentCategory === category.id }"
+          v-for="category in categories" 
+          :key="category.id"
+          @click="switchCategory(category.id)"
+        >
+          <text>{{ category.name }}</text>
+          <view class="category-active-line" v-if="currentCategory === category.id"></view>
+        </view>
+      </scroll-view>
+
+      <!-- 项目列表 -->
+      <view class="projects-list">
+        <view v-if="filteredProjects.length === 0" class="empty-tip">
+          <text>暂无项目</text>
+        </view>
+        <view class="project-card" 
+          v-for="(project, index) in filteredProjects" 
+          :key="project.id"
+          :animation-delay="index * 0.1 + 's'"
+        >
+          <image :src="project.img" mode="aspectFill" class="project-image"></image>
+          <view class="project-info">
+            <text class="project-name">{{ project.name }}</text>
+            <text class="project-desc">{{ project.desc }}</text>
+            <view class="project-footer">
+              <text class="project-price">¥{{ project.price }}</text>
+              <button class="cart-button" @click="openBottomSheet(project)">
+                <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
+              </button>
+            </view>
           </view>
         </view>
       </view>
-    </view>
+    </template>
 
     <!-- 底部弹出框 -->
     <view class="bottom-sheet" v-if="showBottomSheet">
@@ -98,148 +115,201 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 // 导入公共的添加购物车功能
 import { useAddToCart } from '../../utils/cart-utils';
 
-// 直接导入图片
-import tangzudao from '../../static/items/wxpic_202508220008253.jpg';
-import yuespa from '../../static/items/wxpic_202508220008254.jpg';
-import mengspa from '../../static/items/wxpic_20250822000826.jpg';
-import qingspa from '../../static/items/wxpic_202508220008261.jpg';
-import yunspa from '../../static/items/wxpic_202508220008262.jpg';
-import jingzudao from '../../static/items/wxpic_202508220008263.jpg';
-import chayi from '../../static/items/wxpic_202508220008264.jpg';
-import chanspa from '../../static/items/wxpic_202508220008265.jpg';
-import yispa from '../../static/items/wxpic_202508220008266.jpg';
-import xiaoxiang from '../../static/items/wxpic_202508220008267.jpg';
-import shuizudao from '../../static/items/wxpic_20250824234702.jpg';
-import xiyucuozao from '../../static/items/wxpic_202508220008251.jpg';
-import shengzudao from '../../static/items/wxpic_202508220008252.jpg';
+// 导入API接口
+import api from '../../utils/api';
 
 export default {
   name: 'ProjectsPage',
   setup() {
+    // 加载状态
+    const loading = ref(true);
+    const error = ref('');
+
     // 分类数据
-    const categories = ref([
-      { id: 'all', name: '全部' },
-      { id: 'spa', name: 'SPA' },
-      { id: 'foot', name: '足道' },
-      { id: 'small', name: '小项' },
-      { id: 'other', name: '其他' }
-    ]);
+    const categories = ref([]);
 
     // 当前选中的分类
     const currentCategory = ref('all');
 
     // 项目数据
-    const projects = ref([
-      {
-        id: 1,
-        name: '唐足道',
-        desc: '90分钟+精致自助餐',
-        price: 128,
-        category: 'foot',
-        img: tangzudao
-      },
-      {
-        id: 2,
-        name: '韵SPA',
-        desc: '120分钟+精致自助餐',
-        price: 268,
-        category: 'spa',
-        img: yunspa
-      },
-      {
-        id: 3,
-        name: '梦SPA',
-        desc: '100分钟+精致自助餐',
-        price: 198,
-        category: 'spa',
-        img: mengspa
-      },
-      {
-        id: 4,
-        name: '清SPA',
-        desc: '80分钟+精致自助餐',
-        price: 158,
-        category: 'spa',
-        img: qingspa
-      },
-      {
-        id: 5,
-        name: '小项四选一',
-        desc: '20分钟 采耳/修脚/刮痧/拔罐',
-        price: 68,
-        category: 'small',
-        img: xiaoxiang
-      },
-      {
-        id: 6,
-        name: '怡SPA',
-        desc: '80分钟+精致自助餐',
-        price: 508,
-        category: 'spa',
-        img: yispa
-      },
-       {
-        id: 11,
-        name: '禅SPA',
-        desc: '100分钟+精致自助餐',
-        price: 688,
-        category: 'spa',
-        img: chanspa
-      },
-        {
-        id: 12,
-        name: '悦SPA',
-        desc: '90分钟+精致自助餐',
-        price: 388,
-        category: 'spa',
-        img: yuespa
-      },
-      {
-        id: 7,
-        name: '盛足道',
-        desc: '70分钟+精致自助餐',
-        price: 168,
-        category: 'foot',
-        img: shengzudao
-      },
-      {
-        id: 8,
-        name: '水足道',
-        desc: '90分钟+精致自助餐',
-        price: 288,
-        category: 'foot',
-        img: shuizudao
-      },
-       {
-        id: 9,
-        name: '镜足道',
-        desc: '100分钟+精致自助餐',
-        price: 338,
-        category: 'foot',
-        img: jingzudao
-      },
-       {
-        id: 10,
-        name: '茶艺',
-        desc: '60分钟',
-        price: 198,
-        category: 'other',
-        img: chayi
-      },
-       {
-        id: 13,
-        name: '洗浴搓澡',
-        desc: '150分钟',
-        price: 98,
-        category: 'other',
-        img: xiyucuozao
+    const projects = ref([]);
+
+    // 获取分类数据
+    const fetchCategories = async () => {
+      try {
+        const res = await api.projects.getCategories();
+        if (res.code === 200 && res.data) {
+          // 确保分类数据中包含'全部'选项
+          categories.value = [{ id: 'all', name: '全部' }, ...res.data];
+        }
+      } catch (err) {
+        console.error('获取分类数据失败:', err);
+        // 使用默认分类数据
+        categories.value = [
+          { id: 'all', name: '全部' },
+          { id: 'spa', name: 'SPA' },
+          { id: 'foot', name: '足道' },
+          { id: 'small', name: '小项' },
+          { id: 'other', name: '其他' }
+        ];
       }
-    ]);
+    };
+
+    // 获取项目列表数据
+    const fetchProjects = async () => {
+      try {
+        // 获取所有项目列表
+        const res = await api.projects.getList({ pageSize: 100 }); // 获取足够多的项目
+        if (res.code === 200 && res.data && res.data.list) {
+          projects.value = res.data.list.map(project => ({
+            id: project.id,
+            name: project.name,
+            desc: project.description || '暂无描述',
+            price: project.price,
+            category: project.category || 'other',
+            img: project.image || '/static/icons/placeholder.png'
+          }));
+        }
+      } catch (err) {
+        console.error('获取项目数据失败，使用模拟数据:', err);
+        // 获取数据失败时直接使用模拟数据，不显示错误信息
+        projects.value = [
+          {
+            id: 1,
+            name: '唐足道',
+            desc: '90分钟+精致自助餐',
+            price: 128,
+            category: 'foot',
+            img: '/static/items/wxpic_202508220008253.jpg'
+          },
+          {
+            id: 2,
+            name: '韵SPA',
+            desc: '120分钟+精致自助餐',
+            price: 268,
+            category: 'spa',
+            img: '/static/items/wxpic_202508220008262.jpg'
+          },
+          {
+            id: 3,
+            name: '梦SPA',
+            desc: '100分钟+精致自助餐',
+            price: 198,
+            category: 'spa',
+            img: '/static/items/wxpic_20250822000826.jpg'
+          },
+          {
+            id: 4,
+            name: '清SPA',
+            desc: '80分钟+精致自助餐',
+            price: 158,
+            category: 'spa',
+            img: '/static/items/wxpic_202508220008261.jpg'
+          },
+          {
+            id: 5,
+            name: '小项四选一',
+            desc: '20分钟 采耳/修脚/刮痧/拔罐',
+            price: 68,
+            category: 'small',
+            img: '/static/items/wxpic_202508220008267.jpg'
+          },
+          {
+            id: 6,
+            name: '怡SPA',
+            desc: '80分钟+精致自助餐',
+            price: 508,
+            category: 'spa',
+            img: '/static/items/wxpic_202508220008266.jpg'
+          },
+          {
+            id: 7,
+            name: '禅SPA',
+            desc: '100分钟+精致自助餐',
+            price: 688,
+            category: 'spa',
+            img: '/static/items/wxpic_202508220008265.jpg'
+          },
+          {
+            id: 8,
+            name: '悦SPA',
+            desc: '90分钟+精致自助餐',
+            price: 388,
+            category: 'spa',
+            img: '/static/items/wxpic_202508220008254.jpg'
+          },
+          {
+            id: 9,
+            name: '盛足道',
+            desc: '70分钟+精致自助餐',
+            price: 168,
+            category: 'foot',
+            img: '/static/items/wxpic_202508220008252.jpg'
+          },
+          {
+            id: 10,
+            name: '水足道',
+            desc: '90分钟+精致自助餐',
+            price: 288,
+            category: 'foot',
+            img: '/static/items/wxpic_20250824234702.jpg'
+          },
+          {
+            id: 11,
+            name: '镜足道',
+            desc: '100分钟+精致自助餐',
+            price: 338,
+            category: 'foot',
+            img: '/static/items/wxpic_202508220008263.jpg'
+          },
+          {
+            id: 12,
+            name: '茶艺',
+            desc: '60分钟',
+            price: 198,
+            category: 'other',
+            img: '/static/items/wxpic_202508220008264.jpg'
+          },
+          {
+            id: 13,
+            name: '洗浴搓澡',
+            desc: '150分钟',
+            price: 98,
+            category: 'other',
+            img: '/static/items/wxpic_202508220008251.jpg'
+          }
+        ];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // 加载所有数据
+    const loadAllData = async () => {
+      loading.value = true;
+      error.value = '';
+      try {
+        await Promise.all([
+          fetchCategories(),
+          fetchProjects()
+        ]);
+      } catch (err) {
+        console.error('加载数据失败，使用模拟数据:', err);
+        // 即使在Promise.all中捕获到错误，我们也不设置error值，确保使用已加载的模拟数据
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // 页面挂载时加载数据
+    onMounted(() => {
+      loadAllData();
+    });
 
     // 计算筛选后的项目
     const filteredProjects = computed(() => {
@@ -277,6 +347,8 @@ export default {
     };
 
     return {
+      loading,
+      error,
       categories,
       currentCategory,
       projects,
@@ -295,7 +367,8 @@ export default {
       durations,
       selectedDuration,
       quantity,
-      stockCount
+      stockCount,
+      loadAllData
     };
   }
 };
@@ -397,6 +470,41 @@ export default {
 .project-image {
   width: 100%;
   height: 240rpx;
+}
+
+/* 错误提示样式 */
+.error-message {
+  background-color: #FFF2F0;
+  color: #F5222D;
+  padding: 20rpx 30rpx;
+  margin: 20rpx;
+  border-radius: 10rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.retry-text {
+  color: #1890FF;
+  font-size: 28rpx;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  padding: 80rpx 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 空状态样式 */
+.empty-tip {
+  grid-column: span 2;
+  text-align: center;
+  padding: 80rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }
 
 .project-info {

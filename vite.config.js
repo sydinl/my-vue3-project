@@ -38,14 +38,15 @@ export default defineConfig({
         'Cache-Control': 'max-age=31536000'
       }
     },
-    // 配置代理（如果需要）
-    // proxy: {
-    //   '/api': {
-    //     target: 'http://localhost:3000',
-    //     changeOrigin: true,
-    //     rewrite: (path) => path.replace(/^\/api/, '')
-    //   }
-    // }
+    // 配置代理处理跨域问题
+    proxy: {
+      '/api': {
+        target: 'https://iousxaoupndv.sealoshzh.site',
+        changeOrigin: true,
+        secure: true, // 允许https
+        rewrite: (path) => path.replace(/^\/api/, '/api')
+      }
+    }
   },
   // 构建配置
   build: {

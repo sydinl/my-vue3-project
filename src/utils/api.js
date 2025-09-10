@@ -1,0 +1,192 @@
+// API基础配置
+// const API_BASE_URL = '/'; // 使用代理的相对路径地址
+
+// 请求方法封装
+const request = (url, method, data = {}, options = {}) => {
+  return new Promise((resolve, reject) => {
+    // 获取存储的token
+    const token = uni.getStorageSync('userToken');
+    
+    // 构建请求参数
+    const requestOptions = {
+      url: `${url}`,
+      method,
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        // 添加CORS相关头信息
+        'Access-Control-Allow-Origin': '*'
+      },
+      // 允许跨域携带凭证
+      withCredentials: true,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else if (res.statusCode === 401) {
+          // 未授权，跳转到登录页
+          uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
+          setTimeout(() => {
+            uni.redirectTo({ url: '/pages/index/index' });
+          }, 1500);
+          reject(new Error('未授权'));
+        } else {
+          uni.showToast({ title: res.data?.message || '请求失败', icon: 'none' });
+          reject(new Error(res.data?.message || `请求失败: ${res.statusCode}`));
+        }
+      },
+      fail: (err) => {
+        uni.showToast({ title: '网络异常，请重试', icon: 'none' });
+        reject(err);
+      },
+      ...options
+    };
+    
+    // 根据请求方法设置数据
+    if (method === 'GET') {
+      requestOptions.data = data;
+    } else {
+      requestOptions.data = JSON.stringify(data);
+    }
+    
+    // 发起请求
+    uni.request(requestOptions);
+  });
+};
+
+// 统一处理分页参数
+const handlePageParams = (params = {}) => {
+  return {
+    page: params.page || 1,
+    pageSize: params.pageSize || 10,
+    ...params
+  };
+};
+
+// API接口方法
+const api = {
+  // 用户相关接口
+  user: {
+    // 用户登录
+    login: (data) => request('/api/user/login', 'POST', data),
+    
+    // 获取用户信息
+    getInfo: () => request('/api/user/info', 'GET'),
+    
+    // 更新用户信息
+    updateInfo: (data) => request('/api/user/update', 'POST', data),
+    
+    // 退出登录
+    logout: () => request('/api/user/logout', 'POST')
+  },
+  
+  // 订单相关接口
+  orders: {
+    // 获取订单列表
+    getList: (params) => request('/api/orders/list', 'GET', handlePageParams(params)),
+    
+    // 获取订单详情
+    getDetail: (orderId) => request('/api/orders/detail', 'GET', { orderId }),
+    
+    // 创建订单
+    create: (data) => request('/api/orders/create', 'POST', data)
+  },
+  
+  // 资产相关接口
+  assets: {
+    // 积分明细
+    getPointsList: (params) => request('/api/assets/points/list', 'GET', handlePageParams(params)),
+    
+    // 余额记录
+    getBalanceList: (params) => request('/api/assets/balance/list', 'GET', handlePageParams(params)),
+    
+    // 余额充值
+    recharge: (data) => request('/api/assets/balance/recharge', 'POST', data),
+    
+    // 获取优惠券列表
+    getCouponsList: (params) => request('/api/assets/coupons/list', 'GET', handlePageParams(params)),
+    
+    // 获取卡券列表
+    getCardsList: (params) => request('/api/assets/cards/list', 'GET', handlePageParams(params))
+  },
+  
+  // 项目相关接口
+  projects: {
+    // 获取项目列表
+    getList: (params) => request('/api/projects/list', 'GET', handlePageParams(params)),
+    
+    // 获取项目详情
+    getDetail: (projectId) => request('/api/projects/detail', 'GET', { projectId }),
+    
+    // 获取项目分类列表
+    getCategories: () => request('/api/projects/categories', 'GET'),
+    
+    // 获取热门项目列表
+    getHotProjects: (params) => request('/api/projects/hot', 'GET', handlePageParams(params)),
+    
+    // 获取个性化推荐项目
+    getRecommendProjects: (params) => request('/api/projects/recommend', 'GET', handlePageParams(params)),
+    
+    // 收藏/取消收藏项目
+    toggleFavorite: (data) => request('/api/projects/favorite', 'POST', data),
+    
+    // 获取用户收藏项目列表
+    getFavorites: (params) => request('/api/projects/favorites', 'GET', handlePageParams(params)),
+    
+    // 获取项目可用时间
+    getAvailableTime: (params) => request('/api/projects/available-time', 'GET', params),
+    
+    // 获取项目详情图片
+    getDetailImages: (projectId) => request('/api/projects/detail-images', 'GET', { projectId }),
+    
+    // 获取项目评论详情
+    getReviewDetail: (reviewId) => request('/api/projects/reviews/detail', 'GET', { reviewId }),
+    
+    // 提交项目评价
+    submitReview: (data) => request('/api/projects/reviews/submit', 'POST', data)
+  },
+  
+  // 技师相关接口
+  technicians: {
+    // 获取技师列表
+    getList: (params) => request('/api/technicians/list', 'GET', handlePageParams(params))
+  },
+  
+  // 评价相关接口
+  reviews: {
+    // 获取用户评价
+    getList: (params) => request('/api/reviews/list', 'GET', handlePageParams(params))
+  },
+  
+  // 分销相关接口
+  distribution: {
+    // 获取分销中心数据
+    getData: () => request('/api/distribution/data', 'GET'),
+    
+    // 获取分销订单列表
+    getOrders: (params) => request('/api/distribution/orders', 'GET', handlePageParams(params)),
+    
+    // 获取提现记录
+    getWithdrawals: (params) => request('/api/distribution/withdrawals', 'GET', handlePageParams(params)),
+    
+    // 申请提现
+    applyWithdrawal: (data) => request('/api/distribution/applyWithdrawal', 'POST', data)
+  },
+  
+  // 门店相关接口
+  stores: {
+    // 获取门店地址列表
+    getList: () => request('/api/stores/list', 'GET')
+  },
+  
+  // 会员中心接口
+  member: {
+    // 获取会员中心信息
+    getCenterInfo: () => request('/api/member/center', 'GET')
+  }
+};
+
+// 导出API对象
+export default api;
+
+// 导出请求方法供其他地方使用
+export { request };

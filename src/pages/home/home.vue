@@ -53,7 +53,15 @@
           <uni-icons type="right" size="12"></uni-icons>
         </navigator>
       </view>
-      <view class="services-list">
+      <view v-if="loading" class="loading-container">
+        <uni-icons type="spinner" size="36" color="#FF5000" animation="spin"></uni-icons>
+        <text class="loading-text">加载中...</text>
+      </view>
+      <view v-else-if="services.length === 0" class="empty-container">
+        <uni-icons type="empty" size="80" color="#ccc"></uni-icons>
+        <text class="empty-text">暂无精选项目</text>
+      </view>
+      <view v-else class="services-list">
         <view class="service-card" v-for="(service, index) in services" :key="index" :animation-delay="index * 0.1 + 's'">
           <view class="card-content">
             <image :src="service.img" mode="aspectFill" class="service-image"></image>
@@ -81,7 +89,15 @@
           <uni-icons type="right" size="12"></uni-icons>
         </view>
       </view>
-      <scroll-view scroll-x="true" class="technicians-scroll">
+      <view v-if="loading" class="loading-container">
+        <uni-icons type="spinner" size="36" color="#FF5000" animation="spin"></uni-icons>
+        <text class="loading-text">加载中...</text>
+      </view>
+      <view v-else-if="technicians.length === 0" class="empty-container">
+        <uni-icons type="empty" size="80" color="#ccc"></uni-icons>
+        <text class="empty-text">暂无技师数据</text>
+      </view>
+      <scroll-view v-else scroll-x="true" class="technicians-scroll">
         <view class="technician-item" v-for="(tech, index) in technicians" :key="index" :animation-delay="index * 0.1 + 's'">
           <image :src="tech.img" mode="aspectFill" class="technician-image"></image>
           <text class="technician-name">{{ tech.name }}</text>
@@ -99,7 +115,15 @@
           <uni-icons type="right" size="12"></uni-icons>
         </view>
       </view>
-      <view class="reviews-list">
+      <view v-if="loading" class="loading-container">
+        <uni-icons type="spinner" size="36" color="#FF5000" animation="spin"></uni-icons>
+        <text class="loading-text">加载中...</text>
+      </view>
+      <view v-else-if="reviews.length === 0" class="empty-container">
+        <uni-icons type="empty" size="80" color="#ccc"></uni-icons>
+        <text class="empty-text">暂无评价数据</text>
+      </view>
+      <view v-else class="reviews-list">
         <view class="review-item" v-for="(review, index) in reviews" :key="index" :animation-delay="index * 0.1 + 's'">
           <view class="review-header">
             <image :src="review.avatar" mode="aspectFill" class="review-avatar"></image>
@@ -168,7 +192,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+
+// 导入API接口
+import api from '../../utils/api';
 
 // 导入公共的添加购物车功能
 import { useAddToCart } from '../../utils/cart-utils';
@@ -176,37 +203,18 @@ import { useAddToCart } from '../../utils/cart-utils';
 // 直接导入图片
 import slide1 from '../../static/items/wxpic_head_20250822000722.jpg';
 import slide2 from '../../static/items/wxpic_head_20250822000825.jpg';
-import slide3 from '../../static/items/wxpic_202508220008262.jpg';
-import service1 from '../../static/items/wxpic_202508220008253.jpg';
-import service2 from '../../static/items/wxpic_202508220008254.jpg';
-import qingspa from '../../static/items/wxpic_202508220008261.jpg';
-import yunspa from '../../static/items/wxpic_202508220008262.jpg';
-import tech1 from '../../static/items/wxpic_202508220008263.jpg';
-import tech2 from '../../static/items/wxpic_202508220008264.jpg';
-import tech3 from '../../static/items/wxpic_202508220008265.jpg';
-import tech4 from '../../static/items/wxpic_202508220008266.jpg';
-import avatar1 from '../../static/items/wxpic_202508220008267.jpg';
+import slide3 from '../../static/items/wxpic_head_20250901194736.jpg';
+import slide4 from '../../static/items/wxpic_head_20250901194745.jpg';
 
-import shuizudao from '../../static/items/wxpic_20250824234702.jpg';
-
-import shengzudao from '../../static/items/wxpic_202508220008252.jpg';
-
-
-// 导入新的中心入口图片
 import entry1 from '../../static/items/distribution-certificate.svg';
 import entry2 from '../../static/items/member-certificate.svg';
-// 导入关闭图标
 import closeIcon from '../../static/icons/close.svg';
 
 // 添加调试信息
-console.log('页面加载 - 检查图片路径问题');
-
+console.log('页面加载 - 准备调用API接口');
 
 export default {
   name: 'HomePage',
-  onLoad() {
-    console.log('首页加载完成');
-  },
   setup() {
     // 跳转到搜索页面
     const gotoSearch = () => {
@@ -215,45 +223,29 @@ export default {
       });
     };
     
-    // 轮播图数据 - 使用导入的图片变量
+    // 轮播图数据 - 初始使用本地图片，后续可以从API获取
     const slides = ref([
-      { img: slide1, text: '新品上市' },
-      { img: slide2, text: '会员专享' },
-      { img: slide3, text: '限时优惠' }
+      { img: slide1, text: '' },
+      { img: slide2, text: '' },
+      { img: slide3, text: '' },
+      { img: slide4, text: '' }
     ]);
     
-    // 服务项目数据 - 使用导入的图片变量
-    const services = ref([
-      { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: service1 },
-      { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: service2 },
-      { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: shuizudao },
-      { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: yunspa }
-    ]);
+    // 服务项目数据
+    const services = ref([]);
     
-    // 套餐数据 - 使用导入的图片变量
-    const packages = ref([
-      { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: shengzudao },
-      { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: qingspa }
-    ]);
+    // 套餐数据
+    const packages = ref([]);
     
-    // 技师数据 - 使用导入的图片变量
-    const technicians = ref([
-      { id: 1, name: '张技师', exp: '10年经验', img: tech1 },
-      { id: 2, name: '李技师', exp: '8年经验', img: tech2 },
-      { id: 3, name: '王技师', exp: '12年经验', img: tech3 },
-      { id: 4, name: '赵技师', exp: '9年经验', img: tech4 }
-    ]);
+    // 技师数据
+    const technicians = ref([]);
     
-    // 评价数据 - 使用导入的图片变量
-    const reviews = ref([
-      { id: 1, name: '张先生', stars: 5, halfStar: false, content: '服务非常专业，环境也很舒适，技师手法一流，下次还会再来！', avatar: avatar1 },
-      { id: 2, name: '李女士', stars: 4, halfStar: true, content: '环境安静优雅，SPA体验非常放松，精油的味道很舒服，整体很满意。', avatar: avatar1 }
-    ]);
+    // 评价数据
+    const reviews = ref([]);
     
-    // 添加调试信息检查图片路径
-    console.log('slide1路径:', slide1);
-    console.log('entry1路径:', entry1);
-
+    // 加载状态
+    const loading = ref(true);
+    
     // 导航到分销中心
     const goToDistributionCenter = () => {
       uni.navigateTo({ url: '/pages/distribution/distribution' });
@@ -276,19 +268,137 @@ export default {
 
     // 查看更多套餐
     const viewMorePackages = () => {
-      uni.showToast({ title: '查看更多套餐', icon: 'none' });
+      uni.navigateTo({ url: '/pages/projects/projects' });
     };
 
     // 查看所有技师
     const viewAllTechnicians = () => {
-      uni.showToast({ title: '查看所有技师', icon: 'none' });
+      uni.navigateTo({
+        url: '/pages/technicians/list'
+      });
     };
 
     // 查看所有评价
     const viewAllReviews = () => {
-      uni.showToast({ title: '查看所有评价', icon: 'none' });
+      uni.navigateTo({
+        url: '/pages/reviews/list'
+      });
     };
-
+    
+    // 获取项目列表数据
+    const fetchProjects = async () => {
+      try {
+        // 获取热门项目
+        const hotRes = await api.projects.getHotProjects({ pageSize: 4 });
+        if (hotRes.code === 200 && hotRes.data && hotRes.data.list) {
+          services.value = hotRes.data.list.map(project => ({
+            id: project.id,
+            name: project.name,
+            desc: project.description || '暂无描述',
+            price: project.price,
+            img: project.image || '/static/icons/placeholder.png'
+          }));
+        }
+        
+        // 获取套餐数据（可以使用推荐项目接口）
+        const recommendRes = await api.projects.getRecommendProjects({ pageSize: 2 });
+        if (recommendRes.code === 200 && recommendRes.data && recommendRes.data.list) {
+          packages.value = recommendRes.data.list.map(project => ({
+            id: project.id,
+            name: project.name,
+            price: project.price,
+            duration: project.duration || '60分钟',
+            img: project.image || '/static/icons/placeholder.png'
+          }));
+        }
+      } catch (error) {
+        console.error('获取项目数据失败:', error);
+        // 使用模拟数据作为备用
+        services.value = [
+          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: '/static/items/wxpic_202508220008253.jpg' },
+          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: '/static/items/wxpic_202508220008254.jpg' },
+          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: '/static/items/wxpic_20250824234702.jpg' },
+          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: '/static/items/wxpic_202508220008262.jpg' }
+        ];
+        packages.value = [
+          { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/wxpic_202508220008252.jpg' },
+          { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: '/static/items/wxpic_202508220008261.jpg' }
+        ];
+      }
+    };
+    
+    // 获取技师列表数据
+    const fetchTechnicians = async () => {
+      try {
+        const res = await api.technicians.getList({ pageSize: 4 });
+        if (res.code === 200 && res.data && res.data.list) {
+          technicians.value = res.data.list.map(tech => ({
+            id: tech.id,
+            name: tech.name,
+            exp: `${tech.experience}年经验`,
+            img: tech.avatar || '/static/icons/avatar.png'
+          }));
+        }
+      } catch (error) {
+        console.error('获取技师数据失败:', error);
+        // 使用模拟数据作为备用
+        technicians.value = [
+          { id: 1, name: '张技师', exp: '10年经验', img: '/static/items/wxpic_202508220008263.jpg' },
+          { id: 2, name: '李技师', exp: '8年经验', img: '/static/items/wxpic_202508220008264.jpg' },
+          { id: 3, name: '王技师', exp: '12年经验', img: '/static/items/wxpic_202508220008265.jpg' },
+          { id: 4, name: '赵技师', exp: '9年经验', img: '/static/items/wxpic_202508220008266.jpg' }
+        ];
+      }
+    };
+    
+    // 获取评价数据
+    const fetchReviews = async () => {
+      try {
+        // 尝试获取评价数据
+        const res = await api.reviews.getList({ pageSize: 2 });
+        if (res.code === 200 && res.data && res.data.list) {
+          reviews.value = res.data.list.map(review => ({
+            id: review.id,
+            name: review.userName,
+            stars: Math.floor(review.rating),
+            halfStar: review.rating % 1 >= 0.5,
+            content: review.content,
+            avatar: review.userAvatar || '/static/icons/avatar.png'
+          }));
+        }
+      } catch (error) {
+        // 详细记录错误信息，特别是对于404错误
+        console.error('获取评价数据失败:', error);
+        // 检查错误是否包含404相关信息
+        const is404Error = error.message.includes('404') || error.message.includes('Not Found');
+        if (is404Error) {
+          console.warn('评价API接口可能不存在，将使用本地模拟数据');
+        }
+        // 使用模拟数据作为备用
+        reviews.value = [
+          { id: 1, name: '张先生', stars: 5, halfStar: false, content: '服务非常专业，环境也很舒适，技师手法一流，下次还会再来！', avatar: '/static/items/wxpic_202508220008267.jpg' },
+          { id: 2, name: '李女士', stars: 4, halfStar: true, content: '环境安静优雅，SPA体验非常放松，精油的味道很舒服，整体很满意。', avatar: '/static/items/wxpic_202508220008267.jpg' }
+        ];
+      }
+    };
+    
+    // 加载所有数据
+    const loadAllData = async () => {
+      try {
+        loading.value = true;
+        // 并行请求所有数据
+        await Promise.all([
+          fetchProjects(),
+          fetchTechnicians(),
+          fetchReviews()
+        ]);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+    
     // 使用公共的添加购物车功能
     const {
       showBottomSheet,
@@ -306,6 +416,12 @@ export default {
     } = useAddToCart({
       durations: ['60分钟', '90分钟', '100分钟', '120分钟'],
       defaultDurationIndex: 2 // 默认选中第3个选项（索引为2）即'100分钟'
+    });
+    
+    // 页面加载时获取数据
+    onMounted(() => {
+      loadAllData();
+      console.log('首页加载完成，开始调用API接口获取数据');
     });
 
     return {
@@ -336,7 +452,8 @@ export default {
       selectedDuration,
       quantity,
       stockCount,
-      closeIcon
+      closeIcon,
+      loading
     };
   }
 };
@@ -439,13 +556,41 @@ export default {
 }
 
 .services-section,
-.packages-section,
-.technicians-section,
-.reviews-section {
-  background-color: #fff;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-}
+  .packages-section,
+  .technicians-section,
+  .reviews-section {
+    background-color: #fff;
+    padding: 30rpx;
+    margin-bottom: 20rpx;
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60rpx 0;
+    color: #999;
+  }
+
+  .loading-text {
+    margin-top: 20rpx;
+    font-size: 28rpx;
+  }
+
+  .empty-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60rpx 0;
+    color: #999;
+  }
+
+  .empty-text {
+    margin-top: 20rpx;
+    font-size: 28rpx;
+  }
 
 .section-header {
   display: flex;

@@ -15,10 +15,10 @@
         <image src="/static/icons/user.svg" mode="aspectFit" class="avatar"></image>
       </view>
       <view class="user-details">
-        <view class="user-name">用户_1283323</view>
+        <view class="user-name">{{ userInfo.name }}</view>
         <view class="user-stats">
           <view class="stat-item">
-            <view class="stat-number">0</view>
+            <view class="stat-number">{{ userInfo.favoritesCount }}</view>
             <view class="stat-label">我的收藏</view>
           </view>
         </view>
@@ -72,7 +72,7 @@
              <image src="/static/icons/ticket.svg" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
-            <view class="asset-value">0</view>
+            <view class="asset-value">{{ userInfo.points }}</view>
             <view class="asset-label">积分</view>
           </view>
         </view>
@@ -81,7 +81,7 @@
             <image src="/static/icons/money.svg" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
-            <view class="asset-value">0</view>
+            <view class="asset-value">{{ userInfo.balance }}</view>
             <view class="asset-label">余额</view>
           </view>
         </view>
@@ -90,7 +90,7 @@
             <image src="/static/icons/coupon1.svg" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
-            <view class="asset-value">0</view>
+            <view class="asset-value">{{ userInfo.couponsCount }}</view>
             <view class="asset-label">优惠券</view>
           </view>
         </view>
@@ -99,7 +99,7 @@
             <image src="/static/icons/gift.svg" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
-            <view class="asset-value">0</view>
+            <view class="asset-value">{{ userInfo.cardsCount }}</view>
             <view class="asset-label">卡券</view>
           </view>
         </view>
@@ -167,11 +167,52 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import api from '../../utils/api';
 
 export default {
   name: 'UserCenter',
   setup() {
+    // 用户信息数据
+    const userInfo = ref({
+      name: '用户_1283323',
+      avatar: '/static/icons/user.svg',
+      favoritesCount: 0,
+      points: 0,
+      balance: 0,
+      couponsCount: 0,
+      cardsCount: 0
+    });
+
+    // 加载用户信息
+    const loadUserInfo = async () => {
+      try {
+        const res = await api.user.getInfo();
+        if (res.code === 0 && res.data) {
+          userInfo.value = {
+            name: res.data.nickname || `用户_${res.data.userId}`,
+            avatar: res.data.avatar || '/static/icons/user.svg',
+            favoritesCount: res.data.favoritesCount || 0,
+            points: res.data.points || 0,
+            balance: res.data.balance || 0,
+            couponsCount: res.data.couponsCount || 0,
+            cardsCount: res.data.cardsCount || 0
+          };
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        uni.showToast({
+          title: '获取用户信息失败',
+          icon: 'none'
+        });
+      }
+    };
+
+    // 页面加载时获取用户信息
+    onMounted(() => {
+      loadUserInfo();
+    });
+
     // 查看所有订单
     const viewAllOrders = () => {
       uni.navigateTo({
@@ -338,6 +379,7 @@ export default {
     };
 
     return {
+      userInfo,
       viewAllOrders,
       viewOrders,
       viewPoints,
