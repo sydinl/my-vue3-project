@@ -40,13 +40,16 @@
         <text>合计：</text>
         <text class="price">¥{{ totalPrice }}</text>
       </view>
-      <button class="checkout-btn" @click="checkout">结算</button>
+      <button class="checkout-btn" :class="{ 'checking-out': isCheckingOut }" @click="checkout" :disabled="isCheckingOut">
+        {{ isCheckingOut ? '处理中...' : '结算' }}
+      </button>
     </view>
   </view>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue';
+import weChatPayment from '../../utils/payment.js';
 
 // 直接导入图片
 import img1 from '../../static/items/wxpic_202508220008253.jpg';
@@ -64,6 +67,10 @@ export default {
   setup() {
     // 购物车数据
     const cartItems = ref([]);
+    
+    // 防抖相关状态
+    const isCheckingOut = ref(false);
+    let checkoutTimer = null;
 
     // 从本地存储加载购物车数据
     const loadCartItems = () => {
@@ -149,16 +156,98 @@ export default {
 
     // 结算
     const checkout = () => {
+      // 防抖处理：如果正在结算中，直接返回
+      if (isCheckingOut.value) {
+        uni.showToast({ 
+          title: '正在处理中，请稍候...', 
+          icon: 'none',
+          duration: 1500
+        });
+        return;
+      }
+      
       if (cartItems.value.length === 0) {
         uni.showToast({ title: '购物车为空', icon: 'none' });
         return;
       }
       
-      // 清空购物车
-      cartItems.value = [];
-      saveCartItems();
+      // 设置防抖状态
+      isCheckingOut.value = true;
       
-      uni.showToast({ title: '结算成功', icon: 'success' });
+      // 清除之前的定时器
+      if (checkoutTimer) {
+        clearTimeout(checkoutTimer);
+      }
+      
+      // 设置防抖定时器（1秒内只能点击一次）
+      checkoutTimer = setTimeout(() => {
+        isCheckingOut.value = false;
+      }, 1000);
+      
+      // 构建订单数据
+      const orderData = {
+        items: cartItems.value.map(item => ({
+          projectId: item.id,
+          projectName: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          duration: item.duration
+        })),
+        totalAmount: totalPrice.value,
+        paymentMethod: 'wechat',
+        source: 'cart'
+      };
+      
+      // 发起支付
+      console.log('开始发起支付流程...');
+      weChatPayment.processPayment(
+        orderData,
+        // 支付成功回调
+        (result) => {
+          console.log('支付成功回调被调用:', result);
+          console.log('清空购物车前的商品数量:', cartItems.value.length);
+          // 清空购物车
+          cartItems.value = [];
+          console.log('清空购物车后的商品数量:', cartItems.value.length);
+          saveCartItems();
+          console.log('购物车已保存到本地存储');
+          // 重置防抖状态
+          isCheckingOut.value = false;
+          if (checkoutTimer) {
+            clearTimeout(checkoutTimer);
+            checkoutTimer = null;
+          }
+          // 显示成功提示
+          uni.showToast({
+            title: '支付成功',
+            icon: 'success',
+            duration: 2000
+          });
+          // 直接跳转到订单页面，不等待状态检查
+          setTimeout(() => {
+            console.log('准备跳转到订单页面');
+            uni.navigateTo({
+              url: '/pages/orders/my-orders'
+            });
+          }, 2000);
+        },
+        // 支付失败回调
+        (error) => {
+          console.error('支付失败回调被调用:', error);
+          // 重置防抖状态
+          isCheckingOut.value = false;
+          if (checkoutTimer) {
+            clearTimeout(checkoutTimer);
+            checkoutTimer = null;
+          }
+          // 显示失败提示
+          uni.showToast({
+            title: error.message || '支付失败，请重试',
+            icon: 'none',
+            duration: 2000
+          });
+        }
+      );
     };
 
     // 返回首页
@@ -176,6 +265,7 @@ export default {
     return {
       cartItems,
       totalPrice,
+      isCheckingOut,
       loadCartItems,
       increaseQuantity,
       decreaseQuantity,
@@ -360,5 +450,17 @@ export default {
   height: 80rpx;
   border-radius: 40rpx;
   font-size: 28rpx;
+  transition: all 0.3s ease;
+}
+
+.checkout-btn.checking-out {
+  background-color: #ccc;
+  opacity: 0.7;
+}
+
+.checkout-btn:disabled {
+  background-color: #ccc;
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 </style>

@@ -88,7 +88,28 @@ const api = {
     getDetail: (orderId) => request('/api/orders/detail', 'GET', { orderId }),
     
     // 创建订单
-    create: (data) => request('/api/orders/create', 'POST', data)
+    create: (data) => request('/api/orders/create', 'POST', data),
+    
+    // 取消订单
+    cancel: (orderId) => request('/api/orders/cancel', 'POST', { orderId }),
+    
+    // 确认收货
+    confirm: (orderId) => request('/api/orders/confirm', 'POST', { orderId })
+  },
+  
+  // 支付相关接口
+  payment: {
+    // 获取微信支付参数
+    getWeChatPayParams: (data) => request('/api/payment/wechat/params', 'POST', data),
+    
+    // 查询支付状态
+    queryStatus: (data) => request('/api/payment/status', 'GET', data),
+    
+    // 支付回调处理
+    callback: (data) => request('/api/payment/callback', 'POST', data),
+    
+    // 申请退款
+    refund: (data) => request('/api/payment/refund', 'POST', data)
   },
   
   // 资产相关接口

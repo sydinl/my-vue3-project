@@ -6,6 +6,12 @@
         <uni-icons type="search" size="16" color="#999"></uni-icons>
         <text class="search-placeholder">搜索项目名称...</text>
       </view>
+      <view class="phone-number" @click="callCustomerService">
+        <image src="/static/icons/customer-service1.svg" mode="aspectFit" class="service-icon"></image>
+        <uni-icons type="phone" size="16" color="#666666"></uni-icons>
+        <text class="service-text">客服</text>
+        <text class="phone-text">029-68638888</text>
+      </view>
       <view class="header-actions">
         <uni-icons type="bell" size="20" class="ml-4"></uni-icons>
         <uni-icons type="person" size="20" class="ml-4"></uni-icons>
@@ -223,6 +229,36 @@ export default {
       });
     };
     
+    // 拨打客服电话
+    const callCustomerService = () => {
+      const phoneNumber = '029-68638888'; // 客服电话号码
+      
+      uni.showModal({
+        title: '联系客服',
+        content: `客服电话：${phoneNumber}\n\n是否立即拨打？`,
+        confirmText: '拨打',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            // 调用系统拨号功能
+            uni.makePhoneCall({
+              phoneNumber: phoneNumber,
+              success: () => {
+                console.log('拨打电话成功');
+              },
+              fail: (err) => {
+                console.error('拨打电话失败:', err);
+                uni.showToast({
+                  title: '拨打电话失败',
+                  icon: 'none'
+                });
+              }
+            });
+          }
+        }
+      });
+    };
+    
     // 轮播图数据 - 初始使用本地图片，后续可以从API获取
     const slides = ref([
       { img: slide1, text: '' },
@@ -432,6 +468,8 @@ export default {
       reviews,
       entry1,
       entry2,
+      gotoSearch,
+      callCustomerService,
       goToDistributionCenter,
       goToMemberCenter,
       addToCart,
@@ -445,7 +483,6 @@ export default {
       viewMorePackages,
       viewAllTechnicians,
       viewAllReviews,
-      gotoSearch,
       showBottomSheet,
       selectedService,
       durations,
@@ -468,22 +505,79 @@ export default {
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20rpx 30rpx;
-    background-color: #fff;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  gap: 20rpx;
+}
 
-  .search-bar {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    padding: 10rpx 20rpx;
-    background-color: #f5f5f5;
-    border-radius: 30rpx;
-    margin-right: 20rpx;
-  }
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 10rpx 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+}
+
+.phone-number {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 20rpx;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+  border-radius: 25rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.service-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+.phone-number::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transition: left 0.5s ease;
+}
+
+.phone-number:active::before {
+  left: 100%;
+}
+
+.phone-number:active {
+  transform: translateY(1rpx);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.12);
+}
+
+.service-text {
+  font-size: 22rpx;
+  color: #666666;
+  font-weight: 600;
+  margin-left: 8rpx;
+  letter-spacing: 0.5rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.05);
+}
+
+.phone-text {
+  font-size: 26rpx;
+  color: #333333;
+  font-weight: 700;
+  margin-left: 12rpx;
+  letter-spacing: 1rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.05);
+}
 
   .search-placeholder {
     margin-left: 10rpx;

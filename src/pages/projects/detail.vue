@@ -104,7 +104,7 @@
         <text class="price-text">¥{{ projectInfo.price }}</text>
         <text class="original-price">¥{{ projectInfo.originalPrice || projectInfo.price }}</text>
       </view>
-      <button class="book-now-button" @click="confirmBooking" :disabled="!selectedTechnicianId || !selectedTimeSlot">立即预约</button>
+      <button class="book-now-button" @click="confirmBooking" :disabled="!selectedTechnicianId || !selectedTimeSlot">立即购买</button>
     </view>
   </view>
 </template>
@@ -119,6 +119,7 @@ import {
   toggleProjectFavorite,
   getTechniciansByProject 
 } from '../../utils/api';
+import weChatPayment from '../../utils/payment.js';
 
 export default {
   name: 'ProjectDetail',
@@ -271,10 +272,47 @@ export default {
         return;
       }
       
-      // 跳转到订单确认页面
-      uni.navigateTo({
-        url: `/pages/orders/my-orders?action=create&projectId=${projectId.value}&technicianId=${selectedTechnicianId.value}&timeSlot=${selectedTimeSlot.value}`
-      });
+      if (!projectInfo.value) {
+        uni.showToast({
+          title: '项目信息加载中，请稍后重试',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 构建订单数据
+      const orderData = {
+        items: [{
+          projectId: projectId.value,
+          projectName: projectInfo.value.projectName,
+          price: projectInfo.value.price,
+          quantity: 1,
+          duration: projectInfo.value.duration || '60分钟',
+          technicianId: selectedTechnicianId.value,
+          timeSlot: selectedTimeSlot.value
+        }],
+        totalAmount: projectInfo.value.price,
+        paymentMethod: 'wechat',
+        source: 'detail'
+      };
+      
+      // 发起支付
+      weChatPayment.processPayment(
+        orderData,
+        // 支付成功回调
+        (result) => {
+          console.log('支付成功:', result);
+          // 跳转到订单页面
+          uni.navigateTo({
+            url: '/pages/orders/my-orders'
+          });
+        },
+        // 支付失败回调
+        (error) => {
+          console.error('支付失败:', error);
+          // 支付失败不处理，用户可以选择重试
+        }
+      );
     };
     
     // 查看全部评价

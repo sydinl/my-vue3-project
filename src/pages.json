@@ -169,6 +169,24 @@
 				"disableScroll": false,
 				"enablePullDownRefresh": false
 			}
+		},
+		{
+			"path": "pages/projects/detail",
+			"style": {
+				"navigationBarTitleText": "项目详情",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/payment/result",
+			"style": {
+				"navigationBarTitleText": "支付结果",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black",
+				"disableScroll": false,
+				"enablePullDownRefresh": false
+			}
 		}
 	],
 	"globalStyle": {
