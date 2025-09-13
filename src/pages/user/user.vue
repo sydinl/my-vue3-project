@@ -417,7 +417,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   color: #FFFFFF;
   position: relative;
 }
@@ -438,7 +438,7 @@ export default {
 }
 
 .user-info-section {
-  background: linear-gradient(135deg, #FF5000, #FF8C00);
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
   color: #FFFFFF;
   padding: 40rpx 30rpx;
   display: flex;

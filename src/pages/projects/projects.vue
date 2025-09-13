@@ -21,19 +21,20 @@
     </view>
 
     <!-- 内容区域 -->
-    <template v-else-if="!loading && !error">
+    <template v-else-if="!loading">
       <!-- 分类导航 -->
       <scroll-view scroll-x="true" class="category-scroll">
         <view class="category-item" 
-          :class="{ active: currentCategory === category.id }"
+          :class="{ active: currentCategory === category.name }"
           v-for="category in categories" 
           :key="category.id"
           @click="switchCategory(category.id)"
         >
           <text>{{ category.name }}</text>
-          <view class="category-active-line" v-if="currentCategory === category.id"></view>
+          <view class="category-active-line" v-if="currentCategory === category.name"></view>
         </view>
       </scroll-view>
+      
 
       <!-- 项目列表 -->
       <view class="projects-list">
@@ -146,6 +147,15 @@ export default {
         if (res.code === 200 && res.data) {
           // 确保分类数据中包含'全部'选项
           categories.value = [{ id: 'all', name: '全部' }, ...res.data];
+        } else {
+          // API返回成功但数据格式不正确，使用默认数据
+          categories.value = [
+            { id: 'all', name: '全部' },
+            { id: 'spa', name: 'SPA' },
+            { id: 'foot', name: '足道' },
+            { id: 'small', name: '小项' },
+            { id: 'other', name: '其他' }
+          ];
         }
       } catch (err) {
         console.error('获取分类数据失败:', err);
@@ -171,13 +181,121 @@ export default {
             name: project.name,
             desc: project.description || '暂无描述',
             price: project.price,
-            category: project.category || 'other',
+            category: project.categoryId || 'other',
             img: project.image || '/static/icons/placeholder.png'
           }));
+        } else {
+          // API返回成功但数据格式不正确，使用模拟数据
+          projects.value = [
+            {
+              id: 1,
+              name: '唐足道',
+              desc: '90分钟+精致自助餐',
+              price: 128,
+              category: 'foot',
+              img: '/static/items/wxpic_202508220008253.jpg'
+            },
+            {
+              id: 2,
+              name: '韵SPA',
+              desc: '120分钟+精致自助餐',
+              price: 268,
+              category: 'spa',
+              img: '/static/items/wxpic_202508220008262.jpg'
+            },
+            {
+              id: 3,
+              name: '梦SPA',
+              desc: '100分钟+精致自助餐',
+              price: 198,
+              category: 'spa',
+              img: '/static/items/wxpic_20250822000826.jpg'
+            },
+            {
+              id: 4,
+              name: '清SPA',
+              desc: '80分钟+精致自助餐',
+              price: 158,
+              category: 'spa',
+              img: '/static/items/wxpic_202508220008261.jpg'
+            },
+            {
+              id: 5,
+              name: '小项四选一',
+              desc: '20分钟 采耳/修脚/刮痧/拔罐',
+              price: 68,
+              category: 'small',
+              img: '/static/items/wxpic_202508220008267.jpg'
+            },
+            {
+              id: 6,
+              name: '怡SPA',
+              desc: '80分钟+精致自助餐',
+              price: 508,
+              category: 'spa',
+              img: '/static/items/wxpic_202508220008266.jpg'
+            },
+            {
+              id: 7,
+              name: '禅SPA',
+              desc: '100分钟+精致自助餐',
+              price: 688,
+              category: 'spa',
+              img: '/static/items/wxpic_202508220008265.jpg'
+            },
+            {
+              id: 8,
+              name: '悦SPA',
+              desc: '90分钟+精致自助餐',
+              price: 388,
+              category: 'spa',
+              img: '/static/items/wxpic_202508220008254.jpg'
+            },
+            {
+              id: 9,
+              name: '盛足道',
+              desc: '70分钟+精致自助餐',
+              price: 168,
+              category: 'foot',
+              img: '/static/items/wxpic_202508220008252.jpg'
+            },
+            {
+              id: 10,
+              name: '水足道',
+              desc: '90分钟+精致自助餐',
+              price: 288,
+              category: 'foot',
+              img: '/static/items/wxpic_20250824234702.jpg'
+            },
+            {
+              id: 11,
+              name: '镜足道',
+              desc: '100分钟+精致自助餐',
+              price: 338,
+              category: 'foot',
+              img: '/static/items/wxpic_202508220008263.jpg'
+            },
+            {
+              id: 12,
+              name: '茶艺',
+              desc: '60分钟',
+              price: 198,
+              category: 'other',
+              img: '/static/items/wxpic_202508220008264.jpg'
+            },
+            {
+              id: 13,
+              name: '洗浴搓澡',
+              desc: '150分钟',
+              price: 98,
+              category: 'other',
+              img: '/static/items/wxpic_202508220008251.jpg'
+            }
+          ];
         }
       } catch (err) {
         console.error('获取项目数据失败，使用模拟数据:', err);
-        // 获取数据失败时直接使用模拟数据，不显示错误信息
+        // 使用与else分支相同的模拟数据
         projects.value = [
           {
             id: 1,
@@ -298,9 +416,12 @@ export default {
           fetchCategories(),
           fetchProjects()
         ]);
+        // 确保数据加载完成后清除错误状态
+        error.value = '';
       } catch (err) {
         console.error('加载数据失败，使用模拟数据:', err);
         // 即使在Promise.all中捕获到错误，我们也不设置error值，确保使用已加载的模拟数据
+        error.value = '';
       } finally {
         loading.value = false;
       }
@@ -313,6 +434,7 @@ export default {
 
     // 计算筛选后的项目
     const filteredProjects = computed(() => {
+      console.log(currentCategory)
       if (currentCategory.value === 'all') {
         return projects.value;
       }
@@ -378,7 +500,7 @@ export default {
 .container {
   max-width: 750rpx;
   margin: 0 auto;
-  background-color: #f5f5f5;
+  background-color: #e8f5e8;
   padding-bottom: 100rpx;
 }
 
@@ -432,7 +554,7 @@ export default {
 }
 
 .category-item.active text {
-  color: #FF5000;
+  color: #4CAF50;
   font-weight: bold;
 }
 
@@ -443,7 +565,7 @@ export default {
   transform: translateX(-50%);
   width: 40rpx;
   height: 4rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   border-radius: 2rpx;
 }
 
@@ -542,7 +664,7 @@ export default {
 .project-price {
   font-size: 28rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .cart-button {
@@ -618,7 +740,7 @@ export default {
 .selected-price {
   font-size: 36rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
   margin-top: 20rpx;
   display: block;
 }
@@ -665,9 +787,9 @@ export default {
 }
 
 .duration-option.active {
-  border-color: #FF5000;
-  color: #FF5000;
-  background-color: rgba(255, 80, 0, 0.05);
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.05);
 }
 
 .quantity-selector {
@@ -679,7 +801,7 @@ export default {
 .quantity-btn {
   width: 60rpx;
   height: 60rpx;
-  background-color: #f5f5f5;
+  background-color: #e8f5e8;
   color: #333;
   display: flex;
   justify-content: center;
@@ -708,7 +830,7 @@ export default {
 .add-to-cart-btn {
   flex: 1;
   height: 90rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;
@@ -717,7 +839,7 @@ export default {
 .buy-now-btn {
   flex: 1;
   height: 90rpx;
-  background-color: #FFA500;
+  background-color: #66BB6A;
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;

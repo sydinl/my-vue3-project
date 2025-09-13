@@ -333,7 +333,7 @@ export default {
 
 .go-shopping {
   margin-top: 40rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   color: #fff;
   width: 200rpx;
   border-radius: 30rpx;
@@ -386,7 +386,7 @@ export default {
   margin-top: 10rpx;
   font-size: 28rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .item-quantity {
@@ -440,11 +440,11 @@ export default {
 .total-price .price {
   font-size: 32rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .checkout-btn {
-  background-color: #FF5000;
+  background-color: #4CAF50;
   color: #fff;
   padding: 0 60rpx;
   height: 80rpx;

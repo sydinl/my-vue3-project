@@ -415,7 +415,7 @@ export default {
 
 .project-price {
   font-size: 32rpx;
-  color: #FF5000;
+  color: #4CAF50;
   font-weight: bold;
 }
 

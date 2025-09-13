@@ -60,7 +60,7 @@
         </navigator>
       </view>
       <view v-if="loading" class="loading-container">
-        <uni-icons type="spinner" size="36" color="#FF5000" animation="spin"></uni-icons>
+        <uni-icons type="spinner" size="36" color="#4CAF50" animation="spin"></uni-icons>
         <text class="loading-text">加载中...</text>
       </view>
       <view v-else-if="services.length === 0" class="empty-container">
@@ -96,7 +96,7 @@
         </view>
       </view>
       <view v-if="loading" class="loading-container">
-        <uni-icons type="spinner" size="36" color="#FF5000" animation="spin"></uni-icons>
+        <uni-icons type="spinner" size="36" color="#4CAF50" animation="spin"></uni-icons>
         <text class="loading-text">加载中...</text>
       </view>
       <view v-else-if="technicians.length === 0" class="empty-container">
@@ -122,7 +122,7 @@
         </view>
       </view>
       <view v-if="loading" class="loading-container">
-        <uni-icons type="spinner" size="36" color="#FF5000" animation="spin"></uni-icons>
+        <uni-icons type="spinner" size="36" color="#4CAF50" animation="spin"></uni-icons>
         <text class="loading-text">加载中...</text>
       </view>
       <view v-else-if="reviews.length === 0" class="empty-container">
@@ -136,8 +136,8 @@
             <view class="review-user">
               <text class="review-name">{{ review.name }}</text>
               <view class="star-rating">
-                <uni-icons type="star-filled" size="12" color="#FF5000" v-for="n in review.stars" :key="n"></uni-icons>
-                <uni-icons type="star-half-filled" size="12" color="#FF5000" v-if="review.halfStar"></uni-icons>
+                <uni-icons type="star-filled" size="12" color="#4CAF50" v-for="n in review.stars" :key="n"></uni-icons>
+                <uni-icons type="star-half-filled" size="12" color="#4CAF50" v-if="review.halfStar"></uni-icons>
               </view>
             </view>
           </view>
@@ -216,8 +216,6 @@ import entry1 from '../../static/items/distribution-certificate.svg';
 import entry2 from '../../static/items/member-certificate.svg';
 import closeIcon from '../../static/icons/close.svg';
 
-// 添加调试信息
-console.log('页面加载 - 准备调用API接口');
 
 export default {
   name: 'HomePage',
@@ -244,7 +242,7 @@ export default {
             uni.makePhoneCall({
               phoneNumber: phoneNumber,
               success: () => {
-                console.log('拨打电话成功');
+                // 拨打电话成功
               },
               fail: (err) => {
                 console.error('拨打电话失败:', err);
@@ -326,6 +324,7 @@ export default {
       try {
         // 获取热门项目
         const hotRes = await api.projects.getHotProjects({ pageSize: 4 });
+        console.log('热门项目API响应:', hotRes);
         if (hotRes.code === 200 && hotRes.data && hotRes.data.list) {
           services.value = hotRes.data.list.map(project => ({
             id: project.id,
@@ -334,18 +333,34 @@ export default {
             price: project.price,
             img: project.image || '/static/icons/placeholder.png'
           }));
+          console.log('热门项目数据已设置:', services.value);
+        } else {
+          console.log('热门项目API返回数据格式不正确，使用模拟数据');
+          // API返回成功但数据格式不正确，使用模拟数据
+          services.value = [
+            { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: '/static/items/wxpic_202508220008253.jpg' },
+            { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: '/static/items/wxpic_202508220008254.jpg' },
+            { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: '/static/items/wxpic_20250824234702.jpg' },
+            { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: '/static/items/wxpic_202508220008262.jpg' }
+          ];
         }
         
         // 获取套餐数据（可以使用推荐项目接口）
         const recommendRes = await api.projects.getRecommendProjects({ pageSize: 2 });
-        if (recommendRes.code === 200 && recommendRes.data && recommendRes.data.list) {
+        if (recommendRes.code === 0 && recommendRes.data && recommendRes.data.list) {
           packages.value = recommendRes.data.list.map(project => ({
             id: project.id,
             name: project.name,
             price: project.price,
             duration: project.duration || '60分钟',
-            img: project.image || '/static/icons/placeholder.png'
+            img: project.imageUrl || '/static/icons/placeholder.png'
           }));
+        } else {
+          // API返回成功但数据格式不正确，使用模拟数据
+          packages.value = [
+            { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/wxpic_202508220008252.jpg' },
+            { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: '/static/items/wxpic_202508220008261.jpg' }
+          ];
         }
       } catch (error) {
         console.error('获取项目数据失败:', error);
@@ -457,7 +472,6 @@ export default {
     // 页面加载时获取数据
     onMounted(() => {
       loadAllData();
-      console.log('首页加载完成，开始调用API接口获取数据');
     });
 
     return {
@@ -500,7 +514,7 @@ export default {
 .container {
   max-width: 750rpx;
   margin: 0 auto;
-  background-color: #f5f5f5;
+  background-color: #e8f5e8;
   padding-bottom: 100rpx;
 }
 
@@ -518,7 +532,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 10rpx 20rpx;
-  background-color: #f5f5f5;
+  background-color: #e8f5e8;
   border-radius: 30rpx;
 }
 
@@ -526,7 +540,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 12rpx 20rpx;
-  background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
   border-radius: 25rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
   white-space: nowrap;
@@ -703,7 +717,7 @@ export default {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .services-list {
@@ -766,7 +780,7 @@ export default {
 .service-price {
   font-size: 28rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .cart-button {
@@ -823,7 +837,7 @@ export default {
 .package-price {
   font-size: 28rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .package-duration {
@@ -835,8 +849,8 @@ export default {
   margin-top: 20rpx;
   width: 100%;
   height: 60rpx;
-  background-color: rgba(255, 80, 0, 0.1);
-  color: #FF5000;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
   font-size: 24rpx;
   border-radius: 30rpx;
 }
@@ -856,7 +870,7 @@ export default {
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  border: 4rpx solid #FF5000;
+  border: 4rpx solid #4CAF50;
 }
 
 .technician-name {
@@ -880,7 +894,7 @@ export default {
 }
 
 .review-item {
-  background-color: #f5f5f5;
+  background-color: #e8f5e8;
   border-radius: 16rpx;
   padding: 20rpx;
   animation: slide-up 0.5s ease-out;
@@ -997,7 +1011,7 @@ export default {
 .selected-price {
   font-size: 36rpx;
   font-weight: bold;
-  color: #FF5000;
+  color: #4CAF50;
   margin-top: 20rpx;
   display: block;
 }
@@ -1045,9 +1059,9 @@ export default {
 }
 
 .duration-option.active {
-  border-color: #FF5000;
-  color: #FF5000;
-  background-color: rgba(255, 80, 0, 0.05);
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.05);
 }
 
 .quantity-selector {
@@ -1059,7 +1073,7 @@ export default {
 .quantity-btn {
   width: 60rpx;
   height: 60rpx;
-  background-color: #f5f5f5;
+  background-color: #e8f5e8;
   color: #333;
   display: flex;
   justify-content: center;
@@ -1088,7 +1102,7 @@ export default {
 .add-to-cart-btn {
   flex: 1;
   height: 90rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;
@@ -1097,7 +1111,7 @@ export default {
 .buy-now-btn {
   flex: 1;
   height: 90rpx;
-  background-color: #FFA500;
+  background-color: #66BB6A;
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;
