@@ -1,13 +1,16 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <view class="search-bar" @click="gotoSearch">
         <uni-icons type="search" size="16" color="#999"></uni-icons>
         <text class="search-placeholder">搜索项目名称...</text>
       </view>
       <view class="phone-number" @click="callCustomerService">
-        <image src="/static/icons/customer-service1.svg" mode="aspectFit" class="service-icon"></image>
+        <image src="/static/icons/customer-service1.png" mode="aspectFit" class="service-icon"></image>
         <uni-icons type="phone" size="16" color="#666666"></uni-icons>
         <text class="service-text">客服</text>
         <text class="phone-text">029-68638888</text>
@@ -77,7 +80,7 @@
               <view class="service-footer">
                 <text class="service-price">¥{{ service.price }}</text>
                 <button class="cart-button" @click="openBottomSheet(service)">
-                  <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
+                  <image src="/static/icons/cart1.png" mode="aspectFit" class="cart-icon-button"></image>
                 </button>
               </view>
             </view>
@@ -203,6 +206,9 @@ import { ref, onMounted } from 'vue';
 // 导入API接口
 import api from '../../utils/api';
 
+// 添加调试信息
+console.log('Home页面API对象:', api);
+
 // 导入公共的添加购物车功能
 import { useAddToCart } from '../../utils/cart-utils';
 
@@ -212,14 +218,46 @@ import slide2 from '../../static/items/wxpic_head_20250822000825.jpg';
 import slide3 from '../../static/items/wxpic_head_20250901194736.jpg';
 import slide4 from '../../static/items/wxpic_head_20250901194745.jpg';
 
-import entry1 from '../../static/items/distribution-certificate.svg';
-import entry2 from '../../static/items/member-certificate.svg';
-import closeIcon from '../../static/icons/close.svg';
+import entry1 from '../../static/items/distribution-certificate.png';
+import entry2 from '../../static/items/member-certificate.png';
+import closeIcon from '../../static/icons/close.png';
 
 
 export default {
   name: 'HomePage',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    // 安全区域信息
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          // 获取状态栏高度
+          statusBarHeight.value = res.statusBarHeight || 0;
+          
+          // 获取安全区域信息（用于刘海屏等特殊屏幕）
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            // 如果安全区域顶部大于状态栏高度，使用安全区域顶部
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          
+          // 对于刘海屏设备，额外增加一些高度
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44); // iPhone X系列最小44px
+          }
+          
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 跳转到搜索页面
     const gotoSearch = () => {
       uni.navigateTo({
@@ -471,10 +509,12 @@ export default {
     
     // 页面加载时获取数据
     onMounted(() => {
+      getSystemInfo(); // 获取系统信息
       loadAllData();
     });
 
     return {
+      statusBarHeight,
       slides,
       services,
       packages,
@@ -518,6 +558,19 @@ export default {
   padding-bottom: 100rpx;
 }
 
+.status-bar {
+  background-color: #fff;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  /* 支持安全区域 */
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -525,6 +578,8 @@ export default {
   padding: 20rpx 30rpx;
   background-color: #fff;
   gap: 20rpx;
+  position: relative;
+  z-index: 9998;
 }
 
 .search-bar {
@@ -632,31 +687,60 @@ export default {
 .center-entry {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  padding: 8rpx;
-  background-color: #fff;
+  padding: 12rpx;
+  background: linear-gradient(135deg, #F0F8F0 0%, #E8F5E8 100%);
   margin-bottom: 20rpx;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 2rpx solid #4CAF50;
+  border-radius: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.15);
   margin: 20rpx 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.center-entry::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #4CAF50 0%, #66BB6A 50%, #4CAF50 100%);
 }
 
 .entry-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 12rpx;
+  padding: 8rpx;
+  position: relative;
+  transition: all 0.3s ease;
+  border-radius: 16rpx;
+  margin: 4rpx;
+}
+
+.entry-item:hover {
+  transform: translateY(-4rpx);
+  box-shadow: 0 8rpx 25rpx rgba(76, 175, 80, 0.2);
 }
 
 .entry-icon {
   width: 95%;
   padding: 0;
+  position: relative;
 }
 
 .entry-image {
   width: 100%;
   height: 200rpx;
-  border-radius: 10rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 15rpx rgba(76, 175, 80, 0.1);
+  transition: all 0.3s ease;
+}
+
+.entry-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.2);
 }
 
 .entry-text {

@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <uni-icons type="left" size="24" class="back-icon" @click="navigateBack"></uni-icons>
       <text class="header-title">会员中心</text>
       <view class="header-right">
@@ -13,7 +16,7 @@
     <!-- 用户信息区域 -->
     <view class="user-info-section">
       <view class="user-avatar">
-        <image src="/static/icons/user.svg" mode="aspectFit" class="avatar"></image>
+        <image src="/static/icons/user.png" mode="aspectFit" class="avatar"></image>
       </view>
       <view class="user-details">
         <view class="user-name">用户_1283323</view>
@@ -42,28 +45,28 @@
       <view class="privileges-list">
         <view class="privilege-item" @click="viewPrivilege('discount')">
           <view class="privilege-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="privilege-text">折扣优惠</view>
         </view>
         
         <view class="privilege-item" @click="viewPrivilege('points')">
           <view class="privilege-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="privilege-text">积分兑换</view>
         </view>
         
         <view class="privilege-item" @click="viewPrivilege('coupons')">
           <view class="privilege-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="privilege-text">优惠券</view>
         </view>
         
         <view class="privilege-item" @click="viewPrivilege('birthday')">
           <view class="privilege-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="privilege-text">生日礼遇</view>
         </view>
@@ -79,42 +82,42 @@
       <view class="services-grid">
         <view class="service-item" @click="viewService('orders')">
           <view class="service-icon">
-            <image src="/static/icons/order.svg" mode="aspectFit"></image>
+            <image src="/static/icons/order.png" mode="aspectFit"></image>
           </view>
           <view class="service-text">我的订单</view>
         </view>
         
         <view class="service-item" @click="viewService('favorites')">
           <view class="service-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="service-text">我的收藏</view>
         </view>
         
         <view class="service-item" @click="viewService('appointments')">
           <view class="service-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="service-text">预约记录</view>
         </view>
         
         <view class="service-item" @click="viewService('reviews')">
           <view class="service-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="service-text">我的评价</view>
         </view>
         
         <view class="service-item" @click="viewService('cards')">
           <view class="service-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="service-text">会员卡</view>
         </view>
         
         <view class="service-item" @click="viewService('settings')">
           <view class="service-icon">
-            <image src="/static/icons/member-center.svg" mode="aspectFit"></image>
+            <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="service-text">设置</view>
         </view>
@@ -124,11 +127,36 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 export default {
   name: 'MemberCenter',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 导航返回
     const navigateBack = () => {
       uni.navigateBack();
@@ -210,7 +238,13 @@ export default {
       });
     };
 
+    // 页面加载时获取系统信息
+    onMounted(() => {
+      getSystemInfo();
+    });
+    
     return {
+      statusBarHeight,
       navigateBack,
       recharge,
       viewAllPrivileges,
@@ -225,10 +259,22 @@ export default {
 .container {
   max-width: 750rpx;
   margin: 0 auto;
-  background-color: #1A1A1A;
-  color: #FFFFFF;
+  background: linear-gradient(180deg, #F0F8F0 0%, #E8F5E8 100%);
+  color: #333;
   padding-bottom: 100rpx;
   min-height: 100vh;
+}
+
+.status-bar {
+  background-color: #4CAF50;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
 }
 
 .header {
@@ -236,10 +282,11 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  background-color: #1A1A1A;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
   position: relative;
-  border-bottom: 1px solid #333;
+  z-index: 9998;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .back-icon {
@@ -262,12 +309,23 @@ export default {
 }
 
 .user-info-section {
-  background-color: #1A1A1A;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
   padding: 30rpx;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #333;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-info-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #66BB6A 0%, #4CAF50 50%, #66BB6A 100%);
 }
 
 .user-avatar {
@@ -295,28 +353,41 @@ export default {
 
 .user-level {
   display: inline-block;
-  background: linear-gradient(90deg, #FFD700, #FFA500);
+  background: linear-gradient(90deg, #66BB6A, #4CAF50);
   padding: 4rpx 16rpx;
   border-radius: 16rpx;
   font-size: 24rpx;
   color: #FFFFFF;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.3);
 }
 
 .balance-section {
-  background-color: #1A1A1A;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FFF8 100%);
   padding: 30rpx;
-  border-bottom: 1px solid #333;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.1);
 }
 
 .balance-card {
-  background: linear-gradient(135deg, #333, #555);
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
   padding: 30rpx;
-  border-radius: 16rpx;
-  border: 2px solid #444;
+  border-radius: 20rpx;
+  border: 2px solid #66BB6A;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.3);
+  overflow: hidden;
+}
+
+.balance-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #66BB6A 0%, #4CAF50 50%, #66BB6A 100%);
 }
 
 .balance-amount {
@@ -324,33 +395,42 @@ export default {
   font-weight: bold;
   color: #FFFFFF;
   margin-bottom: 10rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
 }
 
 .balance-label {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 20rpx;
 }
 
 .recharge-btn {
-  background: linear-gradient(90deg, #FFD700, #FFA500);
+  background: linear-gradient(90deg, #66BB6A, #4CAF50);
   color: #FFFFFF;
   font-size: 28rpx;
-  padding: 10rpx 60rpx;
+  padding: 12rpx 60rpx;
   border-radius: 30rpx;
   border: none;
   position: absolute;
   right: 30rpx;
   top: 50%;
   transform: translateY(-50%);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.4);
+  transition: all 0.3s ease;
+}
+
+.recharge-btn:hover {
+  transform: translateY(-52%) scale(1.05);
+  box-shadow: 0 6rpx 16rpx rgba(76, 175, 80, 0.5);
 }
 
 .privileges-section,
 .services-section {
-  background-color: #1A1A1A;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FFF8 100%);
   padding: 20rpx 30rpx;
   margin-bottom: 20rpx;
-  border-bottom: 1px solid #333;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.1);
 }
 
 .section-header {
@@ -363,12 +443,13 @@ export default {
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #FFFFFF;
+  color: #2E7D32;
 }
 
 .more-link {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: #4CAF50;
+  font-weight: 500;
 }
 
 .privileges-list {
@@ -387,11 +468,12 @@ export default {
   width: 80rpx;
   height: 80rpx;
   margin-bottom: 10rpx;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
   border-radius: 16rpx;
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .privilege-icon image {
@@ -401,7 +483,8 @@ export default {
 
 .privilege-text {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: #2E7D32;
+  font-weight: 500;
 }
 
 .services-grid {
@@ -421,11 +504,12 @@ export default {
   width: 80rpx;
   height: 80rpx;
   margin-bottom: 10rpx;
-  background-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
   border-radius: 16rpx;
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .service-icon image {
@@ -435,6 +519,7 @@ export default {
 
 .service-text {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: #2E7D32;
+  font-weight: 500;
 }
 </style>

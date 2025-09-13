@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部搜索栏 -->
-    <view class="search-header">
+    <view class="search-header" :style="{ marginTop: statusBarHeight + 'px' }">
       <view class="search-input-container">
         <uni-icons type="search" size="16" color="#999"></uni-icons>
         <input 
@@ -37,7 +40,7 @@
             <view class="project-footer">
               <text class="project-price">¥{{ project.price }}</text>
               <button class="cart-button" @click="addToCart(project)">
-                <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
+                <image src="/static/icons/cart1.png" mode="aspectFit" class="cart-icon-button"></image>
               </button>
             </view>
           </view>
@@ -46,7 +49,7 @@
       
       <!-- 无结果提示 -->
       <view class="no-results" v-if="filteredProjects.length === 0">
-        <image src="../../static/icons/no-result.svg" mode="aspectFit" class="no-result-icon"></image>
+        <image src="../../static/icons/no-result.png" mode="aspectFit" class="no-result-icon"></image>
         <text class="no-result-text">暂无相关项目</text>
         <text class="no-result-hint">换个关键词试试吧</text>
       </view>
@@ -93,18 +96,50 @@
 import { ref, computed, onMounted } from 'vue';
 
 // 导入项目图片
-import img1 from '../../static/items/wxpic_202508220008253.jpg';
-import img2 from '../../static/items/wxpic_202508220008254.jpg';
-import img3 from '../../static/items/wxpic_20250822000826.jpg';
-import img4 from '../../static/items/wxpic_202508220008261.jpg';
-import img5 from '../../static/items/wxpic_202508220008262.jpg';
-import img6 from '../../static/items/wxpic_202508220008263.jpg';
-import img7 from '../../static/items/wxpic_202508220008264.jpg';
-import img8 from '../../static/items/wxpic_202508220008265.jpg';
+import img1 from '../../static/items/sheng.jpg';
+import img2 from '../../static/items/tang.jpg';
+import img3 from '../../static/items/shui.jpg';
+import img4 from '../../static/items/chan.jpg';
+import img5 from '../../static/items/yue.jpg';
+import img6 from '../../static/items/yi.jpg';
+import img7 from '../../static/items/yun.jpg';
+import img8 from '../../static/items/chayi.jpg';
 
 export default {
   name: 'SearchPage',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    // 安全区域信息
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          // 获取状态栏高度
+          statusBarHeight.value = res.statusBarHeight || 0;
+          
+          // 获取安全区域信息（用于刘海屏等特殊屏幕）
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            // 如果安全区域顶部大于状态栏高度，使用安全区域顶部
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          
+          // 对于刘海屏设备，额外增加一些高度
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44); // iPhone X系列最小44px
+          }
+          
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 搜索关键词
     const searchKeyword = ref('');
     // 是否显示搜索结果
@@ -278,6 +313,7 @@ export default {
     
     // 页面加载时自动聚焦搜索框
     onMounted(() => {
+      getSystemInfo(); // 获取系统信息
       // 加载搜索历史
       loadSearchHistory();
       
@@ -291,6 +327,7 @@ export default {
     });
     
     return {
+      statusBarHeight,
       searchKeyword,
       showResults,
       searchHistory,
@@ -312,6 +349,19 @@ export default {
 <style scoped>
 .container {
   padding-bottom: 20rpx;
+}
+
+.status-bar {
+  background-color: #fff;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  /* 支持安全区域 */
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
 }
 
 .search-header {

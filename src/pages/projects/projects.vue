@@ -53,7 +53,7 @@
             <view class="project-footer">
               <text class="project-price">¥{{ project.price }}</text>
               <button class="cart-button" @click="openBottomSheet(project)">
-                <image src="/static/icons/cart1.svg" mode="aspectFit" class="cart-icon-button"></image>
+                <image src="/static/icons/cart1.png" mode="aspectFit" class="cart-icon-button"></image>
               </button>
             </view>
           </view>
@@ -72,7 +72,7 @@
             <text class="selected-price">¥{{ selectedProject.price }}</text>
           </view>
           <view class="sheet-close" @click="closeBottomSheet">
-            <image src="/static/icons/close.svg" mode="aspectFit" class="close-icon"></image>
+            <image src="/static/icons/close.png" mode="aspectFit" class="close-icon"></image>
           </view>
         </view>
         

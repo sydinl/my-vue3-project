@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <uni-icons type="left" size="24" class="back-icon" @click="navigateBack"></uni-icons>
       <text class="header-title">{{ showCreateForm ? '创建订单' : '我的订单' }}</text>
       <view class="header-right" v-if="!showCreateForm">
@@ -74,7 +77,7 @@
         
         <!-- 空状态显示 -->
         <view class="empty-state" v-else-if="!hasOrders">
-          <image src="/static/icons/order-empty.svg" mode="aspectFit" class="empty-icon"></image>
+          <image src="/static/icons/order-empty.png" mode="aspectFit" class="empty-icon"></image>
           <text class="empty-text">暂无相关订单</text>
         </view>
 
@@ -104,11 +107,36 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { getOrdersByStatus, createOrder, getProjectDetail } from '../../utils/api';
+import api from '../../utils/api';
 
 export default {
   name: 'MyOrders',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 状态数据
     const currentTab = ref('all');
     const hasOrders = ref(false);
@@ -137,7 +165,7 @@ export default {
     const loadOrdersByStatus = async (status) => {
       try {
         loading.value = true;
-        const res = await getOrdersByStatus({ status });
+        const res = await api.orders.getList({ status });
         if (res.code === 0 && res.data && res.data.list) {
           orders.value = res.data.list;
           hasOrders.value = orders.value.length > 0;
@@ -168,7 +196,7 @@ export default {
     const handleCreateOrder = async () => {
       try {
         loading.value = true;
-        const res = await createOrder(createOrderData.value);
+        const res = await api.orders.create(createOrderData.value);
         if (res.code === 0) {
           uni.showToast({
             title: '订单创建成功',
@@ -251,7 +279,7 @@ export default {
     // 获取项目详情用于创建订单
     const loadProjectDetailForCreate = async (projectId) => {
       try {
-        const res = await getProjectDetail({ projectId });
+        const res = await api.projects.getDetail(projectId);
         if (res.code === 0 && res.data) {
           const project = res.data;
           createOrderData.value.projectName = project.name;
@@ -272,6 +300,7 @@ export default {
     
     // 页面加载时的处理
     onMounted(() => {
+      getSystemInfo();
       const params = getRouteParams();
       
       // 检查是否是从项目详情页面跳转过来创建订单的
@@ -299,6 +328,7 @@ export default {
     });
     
     return {
+      statusBarHeight,
       currentTab,
       hasOrders,
       orders,
@@ -325,6 +355,18 @@ export default {
   min-height: 100vh;
 }
 
+.status-bar {
+  background-color: #fff;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -333,6 +375,7 @@ export default {
   background-color: #FFFFFF;
   border-bottom: 1px solid #f0f0f0;
   position: relative;
+  z-index: 9998;
 }
 
 .back-icon {

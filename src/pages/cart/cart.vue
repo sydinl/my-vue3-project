@@ -12,7 +12,7 @@
     <!-- 购物车内容 -->
     <view class="cart-content">
       <view v-if="cartItems.length === 0" class="empty-cart">
-        <image src="/static/icons/cart1.svg" mode="aspectFit" style="width: 80px; height: 80px; opacity: 0.6;"></image>
+        <image src="/static/icons/cart1.png" mode="aspectFit" style="width: 80px; height: 80px; opacity: 0.6;"></image>
         <text class="empty-text">购物车还是空的，去添加一些项目吧~</text>
         <button class="go-shopping" @click="goToProjects">去选购</button>
       </view>
@@ -52,8 +52,8 @@ import { ref, computed, onMounted } from 'vue';
 import weChatPayment from '../../utils/payment.js';
 
 // 直接导入图片
-import img1 from '../../static/items/wxpic_202508220008253.jpg';
-import img2 from '../../static/items/wxpic_202508220008254.jpg';
+import img1 from '../../static/items/sheng.jpg';
+import img2 from '../../static/items/yue.jpg';
 
 // 购物车存储键名
 const CART_STORAGE_KEY = 'spa_cart_items';

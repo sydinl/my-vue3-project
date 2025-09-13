@@ -14,7 +14,7 @@
     <!-- 用户信息区域 -->
     <view class="user-info">
       <view class="user-avatar">
-        <image src="/static/icons/user.svg" mode="aspectFit" class="avatar"></image>
+        <image src="/static/icons/user.png" mode="aspectFit" class="avatar"></image>
       </view>
       <view class="user-name">用户_1283323</view>
     </view>

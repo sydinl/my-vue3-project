@@ -39,14 +39,14 @@ export default defineConfig({
       }
     },
     // 配置代理处理跨域问题
-    proxy: {
-      '/api': {
-        target: 'https://iousxaoupndv.sealoshzh.site',
-        changeOrigin: true,
-        secure: true, // 允许https
-        rewrite: (path) => path.replace(/^\/api/, '/api')
-      }
-    }
+    // proxy: {
+    //   '/api': {
+    //     target: 'https://iousxaoupndv.sealoshzh.site',
+    //     changeOrigin: true,
+    //     secure: true, // 允许https
+    //     rewrite: (path) => path.replace(/^\/api/, '/api')
+    //   }
+    // }
   },
   // 构建配置
   build: {

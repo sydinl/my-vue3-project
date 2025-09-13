@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <uni-icons type="arrow-left" size="24" class="back-icon" @click="navigateBack"></uni-icons>
       <text class="header-title">项目详情</text>
       <view class="header-right">
@@ -111,19 +114,37 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue';
-import { 
-  getProjectDetail, 
-  getProjectDetailImages, 
-  getProjectAvailableTimes, 
-  getProjectReviews, 
-  toggleProjectFavorite,
-  getTechniciansByProject 
-} from '../../utils/api';
+import api from '../../utils/api';
 import weChatPayment from '../../utils/payment.js';
 
 export default {
   name: 'ProjectDetail',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 路由参数
     const route = getCurrentPages().slice(-1)[0].route;
     const projectId = ref('');
@@ -153,7 +174,7 @@ export default {
     const loadProjectDetail = async () => {
       try {
         loading.value = true;
-        const res = await getProjectDetail({ projectId: projectId.value });
+        const res = await api.projects.getDetail(projectId.value);
         if (res.code === 0 && res.data) {
           projectInfo.value = res.data;
           isFavorite.value = res.data.isFavorite || false;
@@ -172,7 +193,7 @@ export default {
     // 获取项目详情图片
     const loadDetailImages = async () => {
       try {
-        const res = await getProjectDetailImages({ projectId: projectId.value });
+        const res = await api.projects.getDetailImages(projectId.value);
         if (res.code === 0 && res.data) {
           detailImages.value = res.data;
         }
@@ -184,7 +205,7 @@ export default {
     // 获取技师列表
     const loadTechnicians = async () => {
       try {
-        const res = await getTechniciansByProject({ projectId: projectId.value });
+        const res = await api.technicians.getList({ projectId: projectId.value });
         if (res.code === 0 && res.data) {
           technicians.value = res.data;
           if (res.data.length > 0) {
@@ -203,7 +224,7 @@ export default {
       if (!selectedTechnicianId.value) return;
       
       try {
-        const res = await getProjectAvailableTimes({
+        const res = await api.projects.getAvailableTime({
           projectId: projectId.value,
           technicianId: selectedTechnicianId.value
         });
@@ -218,7 +239,7 @@ export default {
     // 获取评价列表
     const loadReviews = async () => {
       try {
-        const res = await getProjectReviews({ projectId: projectId.value, page: 1, pageSize: 3 });
+        const res = await api.reviews.getList({ projectId: projectId.value, page: 1, pageSize: 3 });
         if (res.code === 0 && res.data && res.data.list) {
           reviews.value = res.data.list;
         }
@@ -230,7 +251,7 @@ export default {
     // 切换收藏状态
     const toggleFavorite = async () => {
       try {
-        const res = await toggleProjectFavorite({ projectId: projectId.value });
+        const res = await api.projects.toggleFavorite({ projectId: projectId.value });
         if (res.code === 0) {
           isFavorite.value = !isFavorite.value;
           uni.showToast({
@@ -329,6 +350,7 @@ export default {
     
     // 页面加载时获取数据
     onMounted(() => {
+      getSystemInfo();
       projectId.value = getProjectIdFromUrl();
       if (projectId.value) {
         loadProjectDetail();
@@ -339,6 +361,7 @@ export default {
     });
     
     return {
+      statusBarHeight,
       projectInfo,
       detailImages,
       technicians,
@@ -368,18 +391,27 @@ export default {
   padding-bottom: 120rpx;
 }
 
+.status-bar {
+  background-color: #fff;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
   background-color: #FF5000;
+  position: relative;
+  z-index: 9998;
   color: #FFFFFF;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
   max-width: 750rpx;
   margin: 0 auto;
 }

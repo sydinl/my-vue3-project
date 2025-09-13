@@ -19,7 +19,7 @@
           <text class="update-time">更新时间2025-8-26</text>
         </view>
         <view class="header-right">
-          <image src="/static/icons/trophy.svg" mode="aspectFit" class="trophy-icon"></image>
+          <image src="/static/icons/trophy.png" mode="aspectFit" class="trophy-icon"></image>
         </view>
       </view>
     </view>

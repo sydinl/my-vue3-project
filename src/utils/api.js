@@ -1,5 +1,5 @@
 // API基础配置
-// const API_BASE_URL = '/'; // 使用代理的相对路径地址
+const API_BASE_URL = 'https://iousxaoupndv.sealoshzh.site';
 
 // 请求方法封装
 const request = (url, method, data = {}, options = {}) => {
@@ -9,7 +9,7 @@ const request = (url, method, data = {}, options = {}) => {
     
     // 构建请求参数
     const requestOptions = {
-      url: `${url}`,
+      url: `${API_BASE_URL}${url}`,
       method,
       header: {
         'Content-Type': 'application/json',
@@ -205,6 +205,9 @@ const api = {
     getCenterInfo: () => request('/api/member/center', 'GET')
   }
 };
+
+// 添加调试信息
+console.log('API模块加载成功', api);
 
 // 导出API对象
 export default api;

@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <uni-icons type="left" size="24" class="back-icon" @click="navigateBack"></uni-icons>
       <text class="header-title">分销订单</text>
       <view class="header-right">
@@ -21,7 +24,7 @@
     <!-- 订单列表 -->
     <view class="order-list">
       <view v-if="orders.length === 0" class="empty-state">
-        <image src="/static/icons/empty-order.svg" mode="aspectFit" class="empty-icon"></image>
+        <image src="/static/icons/empty-order.png" mode="aspectFit" class="empty-icon"></image>
         <text class="empty-text">暂无订单</text>
       </view>
 
@@ -49,11 +52,36 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 export default {
   name: 'DistributionOrders',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 订单数据（实际项目中可能从API获取）
     const orders = ref([]); // 初始为空订单
     const currentTab = ref('all');
@@ -98,7 +126,13 @@ export default {
       }
     };
 
+    // 页面加载时获取系统信息
+    onMounted(() => {
+      getSystemInfo();
+    });
+    
     return {
+      statusBarHeight,
       orders,
       currentTab,
       navigateBack,
@@ -114,8 +148,20 @@ export default {
 .container {
   max-width: 750rpx;
   margin: 0 auto;
-  background-color: #f5f5f5;
+  background: linear-gradient(180deg, #F0F8F0 0%, #E8F5E8 100%);
   min-height: 100vh;
+}
+
+.status-bar {
+  background-color: #4CAF50;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
 }
 
 .header {
@@ -123,22 +169,21 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  background-color: #FFFFFF;
-  color: #333333;
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+  color: #FFFFFF;
+  position: relative;
+  z-index: 9998;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .back-icon {
-  color: #333333;
+  color: #FFFFFF;
 }
 
 .header-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333333;
+  color: #FFFFFF;
 }
 
 .header-right {
@@ -155,6 +200,9 @@ export default {
   background-color: #FFFFFF;
   padding: 10rpx 0;
   border-bottom: 1px solid #f0f0f0;
+  margin: 0 20rpx;
+  border-radius: 16rpx 16rpx 0 0;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.1);
 }
 
 .tab-item {
@@ -167,7 +215,7 @@ export default {
 }
 
 .tab-item.active {
-  color: #FF5000;
+  color: #4CAF50;
 }
 
 .tab-item.active::after {
@@ -178,12 +226,13 @@ export default {
   transform: translateX(-50%);
   width: 60rpx;
   height: 6rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   border-radius: 3rpx;
 }
 
 .order-list {
   padding: 20rpx;
+  margin: 0 20rpx;
 }
 
 .empty-state {

@@ -60,7 +60,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { getProjectCategories, getPopularProjects, getRecommendedProjects } from '../../utils/api';
+import api from '../../utils/api';
 
 export default {
   name: 'ProjectList',
@@ -75,7 +75,7 @@ export default {
     // 获取项目分类
     const loadCategories = async () => {
       try {
-        const res = await getProjectCategories();
+        const res = await api.projects.getCategories();
         if (res.code === 0 && res.data) {
           categories.value = [{ categoryId: 'all', categoryName: '全部' }, ...res.data];
         }
@@ -92,7 +92,7 @@ export default {
     const loadPopularProjects = async (categoryId = 'all') => {
       try {
         loading.value = true;
-        const res = await getPopularProjects({ categoryId });
+        const res = await api.projects.getHotProjects({ categoryId });
         if (res.code === 0 && res.data) {
           popularProjects.value = res.data;
         }
@@ -110,7 +110,7 @@ export default {
     // 获取个性化推荐项目
     const loadRecommendedProjects = async () => {
       try {
-        const res = await getRecommendedProjects();
+        const res = await api.projects.getRecommendProjects();
         if (res.code === 0 && res.data) {
           recommendedProjects.value = res.data;
         }
@@ -160,7 +160,7 @@ export default {
 .container {
   max-width: 750rpx;
   margin: 0 auto;
-  background-color: #f8f8f8;
+  background: linear-gradient(180deg, #F0F8F0 0%, #E8F5E8 100%);
   min-height: 100vh;
 }
 
@@ -169,8 +169,9 @@ export default {
   justify-content: center;
   align-items: center;
   padding: 20rpx 0;
-  background-color: #FF5000;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .header-title {
@@ -180,9 +181,10 @@ export default {
 }
 
 .category-section {
-  background-color: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FFF8 100%);
   padding: 20rpx 0;
   margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.1);
 }
 
 .category-scroll {
@@ -196,37 +198,49 @@ export default {
   margin-right: 20rpx;
   font-size: 28rpx;
   color: #666666;
-  background-color: #f0f0f0;
+  background: linear-gradient(135deg, #F0F8F0 0%, #E8F5E8 100%);
   border-radius: 30rpx;
+  border: 1px solid #E8F5E8;
+  transition: all 0.3s ease;
 }
 
 .category-item.active {
   color: #FFFFFF;
-  background-color: #FF5000;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .section-header {
   padding: 20rpx 30rpx;
-  background-color: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FFF8 100%);
 }
 
 .section-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333333;
+  color: #2E7D32;
 }
 
 .project-list {
-  background-color: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FFF8 100%);
   padding: 0 30rpx 30rpx;
   margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.1);
 }
 
 .project-item {
   display: flex;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid #E8F5E8;
   align-items: center;
+  transition: all 0.3s ease;
+}
+
+.project-item:hover {
+  background: rgba(76, 175, 80, 0.05);
+  border-radius: 12rpx;
+  margin: 0 -10rpx;
+  padding: 20rpx 10rpx;
 }
 
 .project-item:last-child {
@@ -256,9 +270,10 @@ export default {
 
 .project-price {
   font-size: 36rpx;
-  color: #FF5000;
+  color: #2E7D32;
   margin: 10rpx 0;
   display: block;
+  font-weight: bold;
 }
 
 .project-desc {
@@ -274,15 +289,23 @@ export default {
   width: 120rpx;
   height: 60rpx;
   line-height: 60rpx;
-  background-color: #FF5000;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
   border-radius: 30rpx;
   font-size: 28rpx;
   padding: 0;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
+  transition: all 0.3s ease;
+}
+
+.book-button:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 6rpx 16rpx rgba(76, 175, 80, 0.4);
 }
 
 .recommend-section {
-  background-color: #FFFFFF;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FFF8 100%);
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.1);
 }
 
 .project-grid {
@@ -293,9 +316,17 @@ export default {
 }
 
 .project-grid-item {
-  background-color: #f8f8f8;
+  background: linear-gradient(135deg, #F0F8F0 0%, #E8F5E8 100%);
   border-radius: 16rpx;
   overflow: hidden;
+  border: 1px solid #E8F5E8;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.1);
+}
+
+.project-grid-item:hover {
+  transform: translateY(-4rpx);
+  box-shadow: 0 6rpx 16rpx rgba(76, 175, 80, 0.2);
 }
 
 .project-grid-image {
@@ -318,8 +349,9 @@ export default {
 
 .project-grid-price {
   font-size: 32rpx;
-  color: #FF5000;
+  color: #2E7D32;
   margin-top: 10rpx;
   display: block;
+  font-weight: bold;
 }
 </style>

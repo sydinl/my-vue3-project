@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <text class="header-title">用户中心</text>
       <view class="header-right">
         <uni-icons type="ellipsis" size="20"></uni-icons>
@@ -12,7 +15,7 @@
     <!-- 用户信息区域 -->
     <view class="user-info-section">
       <view class="user-avatar">
-        <image src="/static/icons/user.svg" mode="aspectFit" class="avatar"></image>
+        <image src="/static/icons/user.png" mode="aspectFit" class="avatar"></image>
       </view>
       <view class="user-details">
         <view class="user-name">{{ userInfo.name }}</view>
@@ -39,25 +42,25 @@
       <view class="order-status-items">
         <view class="order-status-item" @click="viewOrders('pending')">
           <view class="order-icon">
-            <image src="/static/icons/wallet.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/wallet.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>待付款</text>
         </view>
         <view class="order-status-item" @click="viewOrders('shipping')">
           <view class="order-icon">
-            <image src="/static/icons/wait-service.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/wait-service.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>待服务</text>
         </view>
         <view class="order-status-item" @click="viewOrders('completed')">
           <view class="order-icon">
-            <image src="/static/icons/completed.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/completed.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>已完成</text>
         </view>
         <view class="order-status-item" @click="viewOrders('aftersale')">
           <view class="order-icon">
-            <image src="/static/icons/post-sales.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/post-sales.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>售后</text>
         </view>
@@ -69,7 +72,7 @@
       <view class="asset-grid">
         <view class="asset-item" @click="viewPoints">
           <view class="order-icon">
-             <image src="/static/icons/ticket.svg" mode="aspectFit" class="cart-icon-button"></image>
+             <image src="/static/icons/ticket.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
             <view class="asset-value">{{ userInfo.points }}</view>
@@ -78,7 +81,7 @@
         </view>
         <view class="asset-item" @click="viewBalance">
           <view class="order-icon">
-            <image src="/static/icons/money.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/money.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
             <view class="asset-value">{{ userInfo.balance }}</view>
@@ -87,7 +90,7 @@
         </view>
         <view class="asset-item" @click="viewCoupons">
           <view class="order-icon">
-            <image src="/static/icons/coupon1.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/coupon1.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
             <view class="asset-value">{{ userInfo.couponsCount }}</view>
@@ -96,7 +99,7 @@
         </view>
         <view class="asset-item" @click="viewCards">
           <view class="order-icon">
-            <image src="/static/icons/gift.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/gift.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <view class="asset-info">
             <view class="asset-value">{{ userInfo.cardsCount }}</view>
@@ -115,49 +118,49 @@
       <view class="menu-grid">
         <view class="menu-item" @click="clearCache">
           <view class="menu-icon">
-            <image src="/static/icons/clear-cache.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/clear-cache.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>清除缓存</text>
         </view>
         <view class="menu-item" @click="goToMemberCenter">
           <view class="menu-icon">
-            <image src="/static/icons/member.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/member.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>会员中心</text>
         </view>
         <view class="menu-item" @click="contactService">
           <view class="menu-icon">
-            <image src="/static/icons/customer-service.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/customer-service.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>客服</text>
         </view>
         <view class="menu-item" @click="viewPersonalInfo">
           <view class="menu-icon">
-            <image src="/static/icons/personal-info.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/personal-info.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>个人资料</text>
         </view>
         <view class="menu-item" @click="goToDistributionCenter">
           <view class="menu-icon">
-            <image src="/static/icons/distribution-center1.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/distribution-center1.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>分销中心</text>
         </view>
         <view class="menu-item" @click="goToRechargeCenter">
           <view class="menu-icon">
-            <image src="/static/icons/topup.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/topup.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>充值中心</text>
         </view>
         <view class="menu-item" @click="goToCouponCenter">
           <view class="menu-icon">
-            <image src="/static/icons/coupon.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/coupon.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>领券中心</text>
         </view>
         <view class="menu-item" @click="viewStoreLocations">
           <view class="menu-icon">
-            <image src="/static/icons/address.svg" mode="aspectFit" class="cart-icon-button"></image>
+            <image src="/static/icons/address.png" mode="aspectFit" class="cart-icon-button"></image>
           </view>
           <text>门店地址</text>
         </view>
@@ -173,6 +176,31 @@ import api from '../../utils/api';
 export default {
   name: 'UserCenter',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 用户信息数据
     const userInfo = ref({
       name: '用户_1283323',
@@ -210,6 +238,7 @@ export default {
 
     // 页面加载时获取用户信息
     onMounted(() => {
+      getSystemInfo();
       loadUserInfo();
     });
 
@@ -379,6 +408,7 @@ export default {
     };
 
     return {
+      statusBarHeight,
       userInfo,
       viewAllOrders,
       viewOrders,
@@ -412,14 +442,27 @@ export default {
   min-height: 100vh;
 }
 
+.status-bar {
+  background-color: #fff;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
   background-color: #4CAF50;
-  color: #FFFFFF;
   position: relative;
+  z-index: 9998;
+  color: #FFFFFF;
 }
 
 .header-title {

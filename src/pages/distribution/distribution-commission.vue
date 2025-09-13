@@ -1,7 +1,10 @@
 <template>
   <view class="container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <uni-icons type="left" size="24" class="back-icon" @click="navigateBack"></uni-icons>
       <text class="header-title">分销佣金</text>
       <view class="header-right">
@@ -47,11 +50,36 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 export default {
   name: 'DistributionCommission',
   setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+        }
+      });
+    };
+    
     // 导航返回
     const navigateBack = () => {
       uni.navigateBack();
@@ -88,7 +116,13 @@ export default {
       });
     };
 
+    // 页面加载时获取系统信息
+    onMounted(() => {
+      getSystemInfo();
+    });
+    
     return {
+      statusBarHeight,
       navigateBack,
       withdraw,
       viewWithdrawDetails,
@@ -102,10 +136,22 @@ export default {
 .container {
   max-width: 750rpx;
   margin: 0 auto;
-  background-color: #f5f5f5;
+  background: linear-gradient(180deg, #F0F8F0 0%, #E8F5E8 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.status-bar {
+  background-color: #4CAF50;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
 }
 
 .header {
@@ -113,11 +159,11 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  background-color: #FF5000;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
-  position: sticky;
-  top: 0;
-  z-index: 999;
+  position: relative;
+  z-index: 9998;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
 }
 
 .back-icon {
@@ -140,10 +186,11 @@ export default {
 }
 
 .commission-overview {
-  background-color: #FF5000;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
   padding: 40rpx 30rpx;
   position: relative;
+  box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.3);
 }
 
 .overview-title {
@@ -173,7 +220,9 @@ export default {
 .commission-details {
   background-color: #FFFFFF;
   padding: 30rpx;
-  margin-bottom: 20rpx;
+  margin: 20rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.1);
 }
 
 .detail-item {
@@ -200,10 +249,12 @@ export default {
 .user-notice {
   background-color: #FFFFFF;
   padding: 20rpx 30rpx;
+  margin: 0 20rpx 20rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
 }
 
 .notice-text {
@@ -222,12 +273,13 @@ export default {
 }
 
 .withdraw-btn {
-  background-color: #FF5000;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
   color: #FFFFFF;
   font-size: 32rpx;
   padding: 20rpx 0;
-  border-radius: 10rpx;
+  border-radius: 16rpx;
   border: none;
   width: 100%;
+  box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.3);
 }
 </style>

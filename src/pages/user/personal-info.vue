@@ -25,7 +25,7 @@
         <view class="info-label">头像</view>
         <view class="avatar-container">
           <view class="avatar-icon">
-            <image src="/static/icons/user-avatar.svg" mode="aspectFit" class="avatar"></image>
+            <image src="/static/icons/user-avatar.png" mode="aspectFit" class="avatar"></image>
           </view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>

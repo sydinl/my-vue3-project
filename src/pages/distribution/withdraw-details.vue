@@ -22,7 +22,7 @@
     <!-- 提现明细列表 -->
     <view class="details-list">
       <view v-if="details.length === 0" class="empty-state">
-        <image src="/static/icons/empty-data.svg" mode="aspectFit" class="empty-icon"></image>
+        <image src="/static/icons/empty-data.png" mode="aspectFit" class="empty-icon"></image>
         <text class="empty-text">暂无数据</text>
       </view>
 
