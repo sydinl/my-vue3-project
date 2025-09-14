@@ -1,9 +1,12 @@
 <template>
   <view class="ranking-container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+    
     <!-- 顶部导航栏 -->
-    <view class="nav-bar">
+    <view class="nav-bar" :style="{ marginTop: statusBarHeight + 'px' }">
       <view class="nav-left" @click="navigateBack">
-        <text class="back-icon">←</text>
+        <uni-icons type="left" size="24" class="back-icon"></uni-icons>
       </view>
       <view class="nav-title">分销排行</view>
       <view class="nav-right">
@@ -64,73 +67,107 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+
 export default {
-  data() {
-    return {
-      // 排行榜数据
-      rankingData: [
-        {
-          nickname: 'K',
-          avatar: '/static/icons/user.svg',
-          count: 156
-        },
-        {
-          nickname: '7777777',
-          avatar: '/static/icons/user.svg',
-          count: 94
-        },
-        {
-          nickname: 'Amy🍓',
-          avatar: '/static/icons/user.svg',
-          count: 27
-        },
-        {
-          nickname: 'AAAAA',
-          avatar: '/static/icons/user.svg',
-          count: 26
-        },
-        {
-          nickname: 'S',
-          avatar: '/static/icons/user.svg',
-          count: 16
-        },
-        {
-          nickname: '用户_201487',
-          avatar: '/static/icons/user.svg',
-          count: 13
-        },
-        {
-          nickname: 'AI丶',
-          avatar: '/static/icons/user.svg',
-          count: 12
-        },
-        {
-          nickname: '缘',
-          avatar: '/static/icons/user.svg',
-          count: 10
+  name: 'DistributionRanking',
+  setup() {
+    // 状态栏高度
+    const statusBarHeight = ref(0);
+    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    
+    // 获取系统信息
+    const getSystemInfo = () => {
+      uni.getSystemInfo({
+        success: (res) => {
+          statusBarHeight.value = res.statusBarHeight || 0;
+          if (res.safeAreaInsets) {
+            safeAreaInsets.value = res.safeAreaInsets;
+            if (res.safeAreaInsets.top > res.statusBarHeight) {
+              statusBarHeight.value = res.safeAreaInsets.top;
+            }
+          }
+          // 针对iPhone X系列设备
+          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
+            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
+          }
+          // 确保最小高度
+          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
         }
-      ]
-    }
-  },
-  onLoad() {
-    // 这里可以添加获取排行榜数据的逻辑
-    this.fetchRankingData();
-  },
-  methods: {
+      });
+    };
+    
+    // 排行榜数据
+    const rankingData = ref([
+      {
+        nickname: 'K',
+        avatar: '/static/icons/user.svg',
+        count: 156
+      },
+      {
+        nickname: '7777777',
+        avatar: '/static/icons/user.svg',
+        count: 94
+      },
+      {
+        nickname: 'Amy🍓',
+        avatar: '/static/icons/user.svg',
+        count: 27
+      },
+      {
+        nickname: 'AAAAA',
+        avatar: '/static/icons/user.svg',
+        count: 26
+      },
+      {
+        nickname: 'S',
+        avatar: '/static/icons/user.svg',
+        count: 16
+      },
+      {
+        nickname: '用户_201487',
+        avatar: '/static/icons/user.svg',
+        count: 13
+      },
+      {
+        nickname: 'AI丶',
+        avatar: '/static/icons/user.svg',
+        count: 12
+      },
+      {
+        nickname: '缘',
+        avatar: '/static/icons/user.svg',
+        count: 10
+      }
+    ]);
+    
     // 返回上一页
-    navigateBack() {
+    const navigateBack = () => {
       uni.navigateBack();
-    },
+    };
     
     // 获取排行榜数据
-    fetchRankingData() {
+    const fetchRankingData = () => {
       // 实际项目中这里应该调用接口获取排行榜数据
       // 模拟数据加载
       setTimeout(() => {
         // 数据已经在data中定义
         console.log('排行榜数据已加载');
       }, 300);
-    }
+    };
+    
+    // 页面加载时获取系统信息
+    onMounted(() => {
+      getSystemInfo();
+      fetchRankingData();
+    });
+    
+    return {
+      statusBarHeight,
+      rankingData,
+      navigateBack,
+      fetchRankingData
+    };
   }
 }
 </script>
@@ -139,21 +176,30 @@ export default {
 .ranking-container {
   width: 100%;
   min-height: 100vh;
-  background-color: #ffffff;
+  background: linear-gradient(180deg, #F0F8F0 0%, #E8F5E8 100%);
+  
+  .status-bar {
+    background-color: #4CAF50;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    padding-top: constant(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top);
+  }
   
   .nav-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 44px;
-    background-color: #ffffff;
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
     padding: 0 16px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 9998;
+    box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
     
     .nav-left {
       width: 44px;
@@ -164,7 +210,7 @@ export default {
       
       .back-icon {
         font-size: 18px;
-        color: #333333;
+        color: #FFFFFF;
       }
     }
     
@@ -173,7 +219,7 @@ export default {
       text-align: center;
       font-size: 16px;
       font-weight: 500;
-      color: #333333;
+      color: #FFFFFF;
     }
     
     .nav-right {

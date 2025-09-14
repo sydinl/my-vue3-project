@@ -82,31 +82,37 @@ const api = {
   // 订单相关接口
   orders: {
     // 获取订单列表
-    getList: (params) => request('/api/orders/list', 'GET', handlePageParams(params)),
+    getList: (params) => request('/api/order/list', 'GET', handlePageParams(params)),
+    
+    // 按状态获取订单列表
+    getListByStatus: (params) => request('/api/order/listByStatus', 'GET', handlePageParams(params)),
     
     // 获取订单详情
-    getDetail: (orderId) => request('/api/orders/detail', 'GET', { orderId }),
+    getDetail: (orderId) => request('/api/order/detail', 'GET', { orderId }),
     
     // 创建订单
-    create: (data) => request('/api/orders/create', 'POST', data),
+    create: (data) => request('/api/order/create', 'POST', data),
+    
+    // 更新订单状态
+    updateStatus: (orderId, status) => request('/api/order/status', 'PUT', { orderId, status }),
     
     // 取消订单
-    cancel: (orderId) => request('/api/orders/cancel', 'POST', { orderId }),
+    cancel: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'cancelled' }),
     
     // 确认收货
-    confirm: (orderId) => request('/api/orders/confirm', 'POST', { orderId })
+    confirm: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'completed' })
   },
   
   // 支付相关接口
   payment: {
     // 获取微信支付参数
-    getWeChatPayParams: (data) => request('/api/payment/wechat/params', 'POST', data),
+    getWeChatPayParams: (data) => request('/api/order/payment/wechat/params', 'POST', data),
     
     // 查询支付状态
-    queryStatus: (data) => request('/api/payment/status', 'GET', data),
+    queryStatus: (data) => request('/api/order/payment/status', 'GET', data),
     
     // 支付回调处理
-    callback: (data) => request('/api/payment/callback', 'POST', data),
+    callback: (data) => request('/api/order/payment/callback', 'POST', data),
     
     // 申请退款
     refund: (data) => request('/api/payment/refund', 'POST', data)

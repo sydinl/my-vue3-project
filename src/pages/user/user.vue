@@ -216,7 +216,7 @@ export default {
     const loadUserInfo = async () => {
       try {
         const res = await api.user.getInfo();
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           userInfo.value = {
             name: res.data.nickname || `用户_${res.data.userId}`,
             avatar: res.data.avatar || '/static/icons/user.svg',

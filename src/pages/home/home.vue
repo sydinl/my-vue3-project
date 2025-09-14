@@ -151,53 +151,53 @@
   </view>
   
   <!-- 底部弹出框 -->
-  <div v-if="showBottomSheet" class="bottom-sheet" @click.self="closeBottomSheet">
-    <div class="sheet-overlay"></div>
-    <div class="sheet-content">
-      <div class="sheet-header">
+  <view v-if="showBottomSheet" class="bottom-sheet" @click.self="closeBottomSheet">
+    <view class="sheet-overlay" @click="closeBottomSheet"></view>
+    <view class="sheet-content">
+      <view class="sheet-header">
         <image v-if="selectedService" :src="selectedService.img" class="selected-image"></image>
-        <div v-if="selectedService" class="selected-info">
+        <view v-if="selectedService" class="selected-info">
           <text class="selected-name">{{selectedService.name}}</text>
           <text class="selected-price">¥{{selectedService.price}}</text>
-        </div>
-        <div class="sheet-close" @click="closeBottomSheet">
+        </view>
+        <view class="sheet-close" @click="closeBottomSheet">
           <image :src="closeIcon" class="close-icon"></image>
-        </div>
-      </div>
+        </view>
+      </view>
       
-      <div class="sheet-body">
+      <view class="sheet-body">
         <!-- 时长选择 -->
-        <div class="option-section">
+        <view class="option-section">
           <text class="option-title">时长</text>
-          <div class="duration-options">
-            <div 
+          <view class="duration-options">
+            <view 
               v-for="duration in durations" 
               :key="duration"
               :class="['duration-option', {active: selectedDuration === duration}]"
               @click="selectDuration(duration)"
             >
               {{duration}}
-            </div>
-          </div>
-        </div>
+            </view>
+          </view>
+        </view>
         
         <!-- 数量选择 -->
-        <div class="option-section">
+        <view class="option-section">
         <text class="option-title">数量</text>
-        <div class="quantity-selector">
+        <view class="quantity-selector">
           <button class="quantity-btn" @click="decreaseQuantity">-</button>
           <text class="quantity">{{quantity}}</text>
           <button class="quantity-btn" @click="increaseQuantity">+</button>
-        </div>
-      </div>
-      </div>
+        </view>
+      </view>
+      </view>
       
-      <div class="sheet-footer">
+      <view class="sheet-footer">
         <button class="add-to-cart-btn" @click="confirmAddToCart">加入购物车</button>
-        <button class="buy-now-btn" @click="closeBottomSheet">立即购买</button>
-      </div>
-    </div>
-  </div>
+        <button class="buy-now-btn" @click="buyNow">立即购买</button>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script>
@@ -333,10 +333,6 @@ export default {
       uni.showToast({ title: `${service.name}已加入购物车`, icon: 'success' });
     };
 
-    // 立即购买
-    const buyNow = (pkg) => {
-      uni.showToast({ title: `购买${pkg.name}`, icon: 'success' });
-    };
 
     // 查看更多套餐
     const viewMorePackages = () => {
@@ -396,18 +392,18 @@ export default {
         } else {
           // API返回成功但数据格式不正确，使用模拟数据
           packages.value = [
-            { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/wxpic_202508220008252.jpg' },
-            { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: '/static/items/wxpic_202508220008261.jpg' }
+            { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/sheng.jpg' },
+            { id: 2, name: '禅SPA', price: 298, duration: '80分钟', img: '/static/items/chan.jpg' }
           ];
         }
       } catch (error) {
         console.error('获取项目数据失败:', error);
         // 使用模拟数据作为备用
         services.value = [
-          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: '/static/items/wxpic_202508220008253.jpg' },
-          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: '/static/items/wxpic_202508220008254.jpg' },
-          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: '/static/items/wxpic_20250824234702.jpg' },
-          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: '/static/items/wxpic_202508220008262.jpg' }
+          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: '/static/items/tang.jpg' },
+          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: '/static/items/yue.jpg' },
+          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: '/static/items/shui.jpg' },
+          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: '/static/items/yun.jpg' }
         ];
         packages.value = [
           { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/wxpic_202508220008252.jpg' },
@@ -501,7 +497,8 @@ export default {
       selectDuration,
       increaseQuantity,
       decreaseQuantity,
-      confirmAddToCart
+      confirmAddToCart,
+      buyNow
     } = useAddToCart({
       durations: ['60分钟', '90分钟', '100分钟', '120分钟'],
       defaultDurationIndex: 2 // 默认选中第3个选项（索引为2）即'100分钟'
@@ -537,12 +534,6 @@ export default {
       viewMorePackages,
       viewAllTechnicians,
       viewAllReviews,
-      showBottomSheet,
-      selectedService,
-      durations,
-      selectedDuration,
-      quantity,
-      stockCount,
       closeIcon,
       loading
     };

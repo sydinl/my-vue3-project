@@ -15,21 +15,57 @@
 
     <!-- 创建订单表单 -->
     <view class="create-order-form" v-if="showCreateForm">
-      <view class="form-item">
-        <text class="form-label">项目名称</text>
-        <text class="form-value">{{ createOrderData.projectName || '加载中...' }}</text>
+      <view class="project-info">
+        <image :src="createOrderData.image || '/static/icons/projects.png'" class="project-image"></image>
+        <view class="project-details">
+          <text class="project-name">{{ createOrderData.projectName || '加载中...' }}</text>
+          <text class="project-duration">{{ createOrderData.duration || '' }}</text>
+        </view>
       </view>
       <view class="form-item">
-        <text class="form-label">选择技师</text>
-        <text class="form-value">{{ createOrderData.technicianName || '加载中...' }}</text>
+        <text class="form-label">数量</text>
+        <view class="quantity-selector">
+          <button class="quantity-btn" @click="decreaseQuantity" :disabled="createOrderData.quantity <= 1">-</button>
+          <text class="quantity-value">{{ createOrderData.quantity }}</text>
+          <button class="quantity-btn" @click="increaseQuantity">+</button>
+        </view>
       </view>
       <view class="form-item">
-        <text class="form-label">预约时间</text>
-        <text class="form-value">{{ createOrderData.timeSlot || '未选择' }}</text>
+        <text class="form-label">优惠券</text>
+        <view class="coupon-selector" @click="selectCoupon">
+          <text class="coupon-text">{{ selectedCoupon ? selectedCoupon.name : '选择优惠券' }}</text>
+          <uni-icons type="right" size="16" class="arrow-icon"></uni-icons>
+        </view>
       </view>
       <view class="form-item">
         <text class="form-label">订单金额</text>
-        <text class="form-value price">¥{{ createOrderData.price || 0 }}</text>
+        <view class="price-details">
+          <text class="original-price">¥{{ createOrderData.price || 0 }}</text>
+          <text v-if="discountAmount > 0" class="discount-amount">-¥{{ discountAmount }}</text>
+          <text class="final-price">¥{{ finalPrice }}</text>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="form-label">支付方式</text>
+        <view class="payment-methods">
+          <view 
+            class="payment-method" 
+            :class="{ active: createOrderData.paymentMethod === 'wechat' }"
+            @click="selectPaymentMethod('wechat')"
+          >
+            <image src="/static/icons/money.png" class="payment-icon"></image>
+            <text class="payment-name">微信支付</text>
+          </view>
+          <view 
+            class="payment-method" 
+            :class="{ active: createOrderData.paymentMethod === 'balance' }"
+            @click="selectPaymentMethod('balance')"
+          >
+            <image src="/static/icons/wallet.png" class="payment-icon"></image>
+            <text class="payment-name">余额支付</text>
+            <text class="balance-amount">余额: ¥{{ userBalance }}</text>
+          </view>
+        </view>
       </view>
       <view class="form-actions">
         <button class="cancel-button" @click="closeCreateForm">取消</button>
@@ -106,7 +142,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '../../utils/api';
 
 export default {
@@ -147,11 +183,37 @@ export default {
     // 创建订单相关数据
     const createOrderData = ref({
       projectId: '',
-      technicianId: '',
-      timeSlot: '',
       projectName: '',
-      technicianName: '',
-      price: 0
+      price: 0,
+      quantity: 1,
+      duration: '',
+      image: '',
+      paymentMethod: 'wechat' // 默认选择微信支付
+    });
+    
+    // 用户余额
+    const userBalance = ref(0);
+    
+    // 优惠券相关
+    const selectedCoupon = ref(null);
+    const availableCoupons = ref([]);
+    
+    // 计算优惠金额
+    const discountAmount = computed(() => {
+      if (!selectedCoupon.value) return 0;
+      const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
+      if (selectedCoupon.value.type === 'fixed') {
+        return Math.min(selectedCoupon.value.value, totalAmount);
+      } else if (selectedCoupon.value.type === 'percentage') {
+        return Math.floor(totalAmount * selectedCoupon.value.value / 100);
+      }
+      return 0;
+    });
+    
+    // 计算最终价格
+    const finalPrice = computed(() => {
+      const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
+      return Math.max(0, totalAmount - discountAmount.value);
     });
     
     // 获取路由参数
@@ -165,9 +227,9 @@ export default {
     const loadOrdersByStatus = async (status) => {
       try {
         loading.value = true;
-        const res = await api.orders.getList({ status });
-        if (res.code === 0 && res.data && res.data.list) {
-          orders.value = res.data.list;
+        const res = await api.orders.getListByStatus({ status });
+        if (res.code === 200 && res.data && res.data.content) {
+          orders.value = res.data.content;
           hasOrders.value = orders.value.length > 0;
         } else {
           orders.value = [];
@@ -196,8 +258,36 @@ export default {
     const handleCreateOrder = async () => {
       try {
         loading.value = true;
-        const res = await api.orders.create(createOrderData.value);
-        if (res.code === 0) {
+        
+        // 检查余额支付时余额是否足够
+        if (createOrderData.value.paymentMethod === 'balance') {
+          if (userBalance.value < finalPrice.value) {
+            uni.showToast({
+              title: '余额不足，请选择其他支付方式',
+              icon: 'none'
+            });
+            return;
+          }
+        }
+        
+        // 构建符合API期望格式的请求参数
+        const orderRequest = {
+          items: [{
+            projectId: createOrderData.value.projectId,
+            projectName: createOrderData.value.projectName,
+            price: createOrderData.value.price,
+            quantity: createOrderData.value.quantity || 1,
+            duration: createOrderData.value.duration || '',
+            technicianId: createOrderData.value.technicianId || '',
+            timeSlot: createOrderData.value.timeSlot || ''
+          }],
+          totalAmount: finalPrice.value,
+          paymentMethod: createOrderData.value.paymentMethod,
+          source: 'app'
+        };
+        
+        const res = await api.orders.create(orderRequest);
+        if (res.code === 200) {
           uni.showToast({
             title: '订单创建成功',
             icon: 'success'
@@ -227,6 +317,68 @@ export default {
     // 关闭创建表单
     const closeCreateForm = () => {
       showCreateForm.value = false;
+    };
+    
+    // 选择支付方式
+    const selectPaymentMethod = (method) => {
+      createOrderData.value.paymentMethod = method;
+    };
+    
+    // 获取用户余额
+    const getUserBalance = async () => {
+      try {
+        const res = await api.user.getInfo();
+        if (res.code === 200 && res.data) {
+          userBalance.value = res.data.balance || 0;
+        }
+      } catch (error) {
+        console.error('获取用户余额失败:', error);
+        userBalance.value = 0;
+      }
+    };
+    
+    // 数量控制
+    const increaseQuantity = () => {
+      createOrderData.value.quantity++;
+    };
+    
+    const decreaseQuantity = () => {
+      if (createOrderData.value.quantity > 1) {
+        createOrderData.value.quantity--;
+      }
+    };
+    
+    // 获取可用优惠券
+    const getAvailableCoupons = async () => {
+      try {
+        const res = await api.assets.getCouponsList({ status: 'available' });
+        if (res.code === 200 && res.data) {
+          availableCoupons.value = res.data.list || [];
+        }
+      } catch (error) {
+        console.error('获取优惠券失败:', error);
+        availableCoupons.value = [];
+      }
+    };
+    
+    // 选择优惠券
+    const selectCoupon = () => {
+      if (availableCoupons.value.length === 0) {
+        uni.showToast({
+          title: '暂无可用的优惠券',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 显示优惠券选择弹窗
+      const couponNames = availableCoupons.value.map(coupon => coupon.name);
+      uni.showActionSheet({
+        itemList: couponNames,
+        success: (res) => {
+          selectedCoupon.value = availableCoupons.value[res.tapIndex];
+        }
+      });
     };
     
     // 导航返回
@@ -280,7 +432,7 @@ export default {
     const loadProjectDetailForCreate = async (projectId) => {
       try {
         const res = await api.projects.getDetail(projectId);
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           const project = res.data;
           createOrderData.value.projectName = project.name;
           createOrderData.value.price = project.price;
@@ -301,22 +453,34 @@ export default {
     // 页面加载时的处理
     onMounted(() => {
       getSystemInfo();
+      getUserBalance(); // 获取用户余额
+      getAvailableCoupons(); // 获取可用优惠券
       const params = getRouteParams();
       
-      // 检查是否是从项目详情页面跳转过来创建订单的
+      // 检查是否是从项目详情页面或主页面跳转过来创建订单的
       if (params.action === 'create' && params.projectId) {
         showCreateForm.value = true;
         createOrderData.value = {
           projectId: params.projectId,
-          technicianId: params.technicianId || '',
-          timeSlot: params.timeSlot || '',
-          projectName: '',
-          technicianName: '',
-          price: 0
+          projectName: params.projectName ? decodeURIComponent(params.projectName) : '',
+          price: params.price ? parseFloat(params.price) : 0,
+          duration: params.duration ? decodeURIComponent(params.duration) : '',
+          quantity: params.quantity ? parseInt(params.quantity) : 1,
+          image: params.image ? decodeURIComponent(params.image) : ''
         };
         
-        // 根据projectId获取项目详情，填充更多信息
-        loadProjectDetailForCreate(params.projectId);
+        // 如果已经有项目名称，直接显示；否则根据projectId获取项目详情
+        if (params.projectName) {
+          // 从主页面跳转，直接显示项目信息
+          uni.showToast({
+            title: '订单预览',
+            icon: 'success',
+            duration: 1500
+          });
+        } else {
+          // 从项目详情页面跳转，需要获取项目详情
+          loadProjectDetailForCreate(params.projectId);
+        }
       } else if (params.status) {
         // 正常的订单列表查看
         currentTab.value = params.status;
@@ -335,9 +499,17 @@ export default {
       loading,
       showCreateForm,
       createOrderData,
+      userBalance,
+      selectedCoupon,
+      discountAmount,
+      finalPrice,
       switchTab,
       handleCreateOrder,
       closeCreateForm,
+      selectPaymentMethod,
+      increaseQuantity,
+      decreaseQuantity,
+      selectCoupon,
       navigateBack,
       getStatusText,
       viewOrderDetail,
@@ -429,6 +601,158 @@ export default {
   color: #FF5000;
   font-size: 36rpx;
   font-weight: bold;
+}
+
+/* 项目信息样式 */
+.project-info {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  margin-bottom: 20rpx;
+}
+
+.project-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+}
+
+.project-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.project-name {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: bold;
+}
+
+.project-duration {
+  font-size: 26rpx;
+  color: #666666;
+}
+
+/* 数量选择器样式 */
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.quantity-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  color: #333333;
+  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-btn:disabled {
+  background-color: #f0f0f0;
+  color: #cccccc;
+}
+
+.quantity-value {
+  font-size: 32rpx;
+  color: #333333;
+  min-width: 60rpx;
+  text-align: center;
+}
+
+/* 优惠券选择器样式 */
+.coupon-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx;
+  border: 1rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  background-color: #fafafa;
+}
+
+.coupon-text {
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.arrow-icon {
+  color: #999999;
+}
+
+/* 价格详情样式 */
+.price-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5rpx;
+}
+
+.original-price {
+  font-size: 26rpx;
+  color: #999999;
+  text-decoration: line-through;
+}
+
+.discount-amount {
+  font-size: 26rpx;
+  color: #4CAF50;
+}
+
+.final-price {
+  font-size: 36rpx;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* 支付方式样式 */
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-top: 10rpx;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  background-color: #fafafa;
+  transition: all 0.3s;
+}
+
+.payment-method.active {
+  border-color: #4CAF50;
+  background-color: #f0f8f0;
+}
+
+.payment-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 20rpx;
+}
+
+.payment-name {
+  font-size: 30rpx;
+  color: #333333;
+  margin-right: 20rpx;
+}
+
+.balance-amount {
+  font-size: 26rpx;
+  color: #4CAF50;
+  margin-left: auto;
 }
 
 .form-actions {

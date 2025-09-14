@@ -76,7 +76,7 @@ export default {
     const loadCategories = async () => {
       try {
         const res = await api.projects.getCategories();
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           categories.value = [{ categoryId: 'all', categoryName: '全部' }, ...res.data];
         }
       } catch (error) {
@@ -93,7 +93,7 @@ export default {
       try {
         loading.value = true;
         const res = await api.projects.getHotProjects({ categoryId });
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           popularProjects.value = res.data;
         }
       } catch (error) {
@@ -111,7 +111,7 @@ export default {
     const loadRecommendedProjects = async () => {
       try {
         const res = await api.projects.getRecommendProjects();
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           recommendedProjects.value = res.data;
         }
       } catch (error) {

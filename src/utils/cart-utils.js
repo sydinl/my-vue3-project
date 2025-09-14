@@ -163,9 +163,19 @@ export function useAddToCart(options = {}) {
    */
   const buyNow = (callback) => {
     if (selectedItem.value) {
-      uni.showToast({
-        title: '即将跳转到订单确认页', 
-        icon: 'none'
+      // 创建订单数据
+      const orderData = {
+        projectId: selectedItem.value.id,
+        projectName: selectedItem.value.name,
+        price: selectedItem.value.price,
+        duration: selectedDuration.value,
+        quantity: quantity.value,
+        image: selectedItem.value.img
+      };
+      
+      // 跳转到订单预览页
+      uni.navigateTo({
+        url: `/pages/orders/my-orders?action=create&projectId=${selectedItem.value.id}&projectName=${encodeURIComponent(selectedItem.value.name)}&price=${selectedItem.value.price}&duration=${encodeURIComponent(selectedDuration.value)}&quantity=${quantity.value}&image=${encodeURIComponent(selectedItem.value.img || '')}`
       });
       
       // 如果提供了回调函数，则调用它

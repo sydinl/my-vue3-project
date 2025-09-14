@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <view class="nav-left" @click="navigateBack">
-        <text class="back-icon">←</text>
+        <uni-icons type="left" size="24" class="back-icon"></uni-icons>
       </view>
       <view class="nav-title">推广二维码</view>
       <view class="nav-right">

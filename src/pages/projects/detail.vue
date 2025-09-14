@@ -175,7 +175,7 @@ export default {
       try {
         loading.value = true;
         const res = await api.projects.getDetail(projectId.value);
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           projectInfo.value = res.data;
           isFavorite.value = res.data.isFavorite || false;
         }
@@ -194,7 +194,7 @@ export default {
     const loadDetailImages = async () => {
       try {
         const res = await api.projects.getDetailImages(projectId.value);
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           detailImages.value = res.data;
         }
       } catch (error) {
@@ -206,7 +206,7 @@ export default {
     const loadTechnicians = async () => {
       try {
         const res = await api.technicians.getList({ projectId: projectId.value });
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           technicians.value = res.data;
           if (res.data.length > 0) {
             selectedTechnicianId.value = res.data[0].technicianId;
@@ -228,7 +228,7 @@ export default {
           projectId: projectId.value,
           technicianId: selectedTechnicianId.value
         });
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           availableTimes.value = res.data;
         }
       } catch (error) {
@@ -240,7 +240,7 @@ export default {
     const loadReviews = async () => {
       try {
         const res = await api.reviews.getList({ projectId: projectId.value, page: 1, pageSize: 3 });
-        if (res.code === 0 && res.data && res.data.list) {
+        if (res.code === 200 && res.data && res.data.list) {
           reviews.value = res.data.list;
         }
       } catch (error) {
@@ -252,7 +252,7 @@ export default {
     const toggleFavorite = async () => {
       try {
         const res = await api.projects.toggleFavorite({ projectId: projectId.value });
-        if (res.code === 0) {
+        if (res.code === 200) {
           isFavorite.value = !isFavorite.value;
           uni.showToast({
             title: isFavorite.value ? '收藏成功' : '取消收藏',
