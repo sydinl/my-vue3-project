@@ -27,8 +27,8 @@
         </view>
       </view>
       <view class="user-actions">
-        <uni-icons type="map" size="24" class="action-icon"></uni-icons>
-        <uni-icons type="setting" size="24" class="action-icon"></uni-icons>
+        <uni-icons type="map" size="24" class="action-icon" @click="viewStoreLocations"></uni-icons>
+        <uni-icons type="setting" size="24" class="action-icon" @click="showSettings"></uni-icons>
       </view>
     </view>
 
@@ -172,6 +172,8 @@
 <script>
 import { ref, onMounted } from 'vue';
 import api from '../../utils/api';
+import wechatLoginManager from '../../utils/wechat-login.js';
+import userManager from '../../utils/user-manager.js';
 
 export default {
   name: 'UserCenter',
@@ -215,17 +217,32 @@ export default {
     // 加载用户信息
     const loadUserInfo = async () => {
       try {
-        const res = await api.user.getInfo();
-        if (res.code === 200 && res.data) {
+        // 优先从用户管理器获取用户信息
+        const currentUser = userManager.getCurrentUser();
+        if (currentUser) {
           userInfo.value = {
-            name: res.data.nickname || `用户_${res.data.userId}`,
-            avatar: res.data.avatar || '/static/icons/user.svg',
-            favoritesCount: res.data.favoritesCount || 0,
-            points: res.data.points || 0,
-            balance: res.data.balance || 0,
-            couponsCount: res.data.couponsCount || 0,
-            cardsCount: res.data.cardsCount || 0
+            name: currentUser.nickname || `用户_${currentUser.userId}`,
+            avatar: currentUser.avatarUrl || '/static/icons/user.png',
+            favoritesCount: 0,
+            points: 0,
+            balance: 0,
+            couponsCount: 0,
+            cardsCount: 0
           };
+        } else {
+          // 如果没有用户信息，尝试从API获取
+          const res = await api.user.getInfo();
+          if (res.code === 200 && res.data) {
+            userInfo.value = {
+              name: res.data.nickname || `用户_${res.data.userId}`,
+              avatar: res.data.avatar || '/static/icons/user.png',
+              favoritesCount: res.data.favoritesCount || 0,
+              points: res.data.points || 0,
+              balance: res.data.balance || 0,
+              couponsCount: res.data.couponsCount || 0,
+              cardsCount: res.data.cardsCount || 0
+            };
+          }
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
@@ -373,10 +390,8 @@ export default {
 
     // 前往领券中心
     const goToCouponCenter = () => {
-      uni.showToast({
-        title: '前往领券中心',
-        icon: 'none',
-        duration: 2000
+      uni.navigateTo({
+        url: '/pages/coupon/coupon-center'
       });
     };
 
@@ -386,6 +401,48 @@ export default {
         title: '查看门店地址',
         icon: 'none',
         duration: 2000
+      });
+    };
+
+    // 显示设置菜单
+    const showSettings = () => {
+      uni.showActionSheet({
+        itemList: ['退出登录'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            handleLogout();
+          }
+        }
+      });
+    };
+
+    // 处理登出
+    const handleLogout = async () => {
+      uni.showModal({
+        title: '确认退出',
+        content: '确定要退出登录吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              // 调用后端登出接口
+              await api.user.logout();
+            } catch (error) {
+              console.error('调用登出接口失败:', error);
+              // 即使后端登出失败，也要清除本地数据
+            }
+            
+            // 清除微信登录信息
+            await wechatLoginManager.logout();
+            
+            // 清除用户管理器信息
+            userManager.clearUser();
+            
+            // 跳转到登录页
+            uni.reLaunch({
+              url: '/pages/login/login'
+            });
+          }
+        }
       });
     };
 
@@ -427,6 +484,8 @@ export default {
       inviteFriends,
       goToCouponCenter,
       viewStoreLocations,
+      showSettings,
+      handleLogout,
       communityGroupBuy,
       recruitment
     };

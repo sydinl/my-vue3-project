@@ -31,7 +31,7 @@
       <!-- 订单项示例（有订单时显示） -->
       <view v-for="order in orders" :key="order.id" class="order-item" v-show="orders.length > 0">
         <view class="order-header">
-          <text class="order-number">订单号: {{ order.orderNumber }}</text>
+          <text class="order-number">订单号: {{ order.orderNo }}</text>
           <text class="order-status" :class="getStatusClass(order.status)">{{ getStatusText(order.status) }}</text>
         </view>
         <view class="order-body">

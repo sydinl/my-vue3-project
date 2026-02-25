@@ -40,9 +40,9 @@
       <view class="form-item">
         <text class="form-label">订单金额</text>
         <view class="price-details">
-          <text class="original-price">¥{{ createOrderData.price || 0 }}</text>
-          <text v-if="discountAmount > 0" class="discount-amount">-¥{{ discountAmount }}</text>
-          <text class="final-price">¥{{ finalPrice }}</text>
+          <text class="original-price">原价: ¥{{ (createOrderData.price * createOrderData.quantity) || 0 }}</text>
+          <text v-if="discountAmount > 0" class="discount-amount">优惠: -¥{{ discountAmount }}</text>
+          <text class="final-price">实付: ¥{{ finalPrice }}</text>
         </view>
       </view>
       <view class="form-item">
@@ -90,11 +90,15 @@
           <view class="tab-underline" :class="{ active: currentTab === 'all' }"></view>
         </view>
         <view class="tab-item" :class="{ active: currentTab === 'pending' }" @click="switchTab('pending')">
-          <text class="tab-text">待付款</text>
+          <text class="tab-text">待支付</text>
           <view class="tab-underline" :class="{ active: currentTab === 'pending' }"></view>
         </view>
+        <view class="tab-item" :class="{ active: currentTab === 'paid' }" @click="switchTab('paid')">
+          <text class="tab-text">已支付</text>
+          <view class="tab-underline" :class="{ active: currentTab === 'paid' }"></view>
+        </view>
         <view class="tab-item" :class="{ active: currentTab === 'shipping' }" @click="switchTab('shipping')">
-          <text class="tab-text">待服务</text>
+          <text class="tab-text">服务中</text>
           <view class="tab-underline" :class="{ active: currentTab === 'shipping' }"></view>
         </view>
         <view class="tab-item" :class="{ active: currentTab === 'completed' }" @click="switchTab('completed')">
@@ -121,18 +125,25 @@
         <view class="orders-container" v-else>
           <view v-for="order in orders" :key="order.orderId" class="order-item">
             <view class="order-header">
-              <text class="order-number">订单号: {{ order.orderId }}</text>
+              <text class="order-number">订单号: {{ order.orderNo }}</text>
               <text class="order-status">{{ getStatusText(order.status) }}</text>
             </view>
             <view class="order-content">
               <text class="order-project">{{ order.projectName }}</text>
-              <text class="order-time">预约时间: {{ order.appointmentTime }}</text>
-              <text class="order-technician">技师: {{ order.technicianName }}</text>
-              <text class="order-price">金额: ¥{{ order.amount }}</text>
+              <text class="order-price">金额: ¥{{ order.totalAmount || order.finalAmount || order.amount || 0 }}</text>
+              <view v-if="order.status === 'paid' && order.verificationCode" class="verification-code">
+                <text class="verification-label">核销码:</text>
+                <text class="verification-value">{{ order.verificationCode }}</text>
+                <button class="copy-button" @click="copyVerificationCode(order.verificationCode)">复制</button>
+              </view>
             </view>
             <view class="order-actions">
               <button class="action-button" @click="viewOrderDetail(order.orderId)">查看详情</button>
               <button class="action-button primary" v-if="order.status === 'pending'" @click="payOrder(order.orderId)">立即支付</button>
+              <button class="action-button success" v-if="order.status === 'paid'" @click="generateVerificationCode(order.orderId)">生成核销码</button>
+              <button class="action-button warning" v-if="order.status === 'paid'" @click="requestService(order.orderId)">申请服务</button>
+              <button class="action-button info" v-if="order.status === 'shipping'">服务中</button>
+              <button class="action-button danger" v-if="order.status === 'pending'" @click="cancelOrder(order.orderId)">取消订单</button>
             </view>
           </view>
         </view>
@@ -186,7 +197,6 @@ export default {
       projectName: '',
       price: 0,
       quantity: 1,
-      duration: '',
       image: '',
       paymentMethod: 'wechat' // 默认选择微信支付
     });
@@ -200,20 +210,18 @@ export default {
     
     // 计算优惠金额
     const discountAmount = computed(() => {
-      if (!selectedCoupon.value) return 0;
-      const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
-      if (selectedCoupon.value.type === 'fixed') {
-        return Math.min(selectedCoupon.value.value, totalAmount);
-      } else if (selectedCoupon.value.type === 'percentage') {
-        return Math.floor(totalAmount * selectedCoupon.value.value / 100);
+      if (selectedCoupon.value && selectedCoupon.value.discountAmount) {
+        return selectedCoupon.value.discountAmount;
       }
-      return 0;
+      return createOrderData.value.discountAmount || 0;
     });
     
     // 计算最终价格
     const finalPrice = computed(() => {
-      const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
-      return Math.max(0, totalAmount - discountAmount.value);
+      if (selectedCoupon.value && selectedCoupon.value.finalAmount) {
+        return selectedCoupon.value.finalAmount;
+      }
+      return createOrderData.value.finalAmount || (createOrderData.value.price * createOrderData.value.quantity);
     });
     
     // 获取路由参数
@@ -276,14 +284,15 @@ export default {
             projectId: createOrderData.value.projectId,
             projectName: createOrderData.value.projectName,
             price: createOrderData.value.price,
-            quantity: createOrderData.value.quantity || 1,
-            duration: createOrderData.value.duration || '',
-            technicianId: createOrderData.value.technicianId || '',
-            timeSlot: createOrderData.value.timeSlot || ''
+            quantity: createOrderData.value.quantity || 1
           }],
-          totalAmount: finalPrice.value,
+          totalAmount: createOrderData.value.price * createOrderData.value.quantity,
           paymentMethod: createOrderData.value.paymentMethod,
-          source: 'app'
+          source: 'cart',
+          couponCode: selectedCoupon.value ? selectedCoupon.value.code : '',
+          discountAmount: discountAmount.value,
+          finalAmount: finalPrice.value,
+          remarks: createOrderData.value.remarks || ''
         };
         
         const res = await api.orders.create(orderRequest);
@@ -296,6 +305,8 @@ export default {
           setTimeout(() => {
             showCreateForm.value = false;
             switchTab('pending');
+            // 刷新订单列表
+            getOrders();
           }, 1500);
         } else {
           uni.showToast({
@@ -351,9 +362,16 @@ export default {
     // 获取可用优惠券
     const getAvailableCoupons = async () => {
       try {
-        const res = await api.assets.getCouponsList({ status: 'available' });
+        const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
+        const projectIds = createOrderData.value.projectId ? [createOrderData.value.projectId] : [];
+        
+        const res = await api.coupons.getAvailable({
+          orderAmount: totalAmount,
+          projectIds: projectIds.join(',')
+        });
+        
         if (res.code === 200 && res.data) {
-          availableCoupons.value = res.data.list || [];
+          availableCoupons.value = res.data || [];
         }
       } catch (error) {
         console.error('获取优惠券失败:', error);
@@ -372,13 +390,92 @@ export default {
       }
       
       // 显示优惠券选择弹窗
-      const couponNames = availableCoupons.value.map(coupon => coupon.name);
+      const couponNames = availableCoupons.value.map(coupon => coupon.couponName);
+      couponNames.push('不使用优惠券');
+      
       uni.showActionSheet({
         itemList: couponNames,
         success: (res) => {
-          selectedCoupon.value = availableCoupons.value[res.tapIndex];
+          if (res.tapIndex < availableCoupons.value.length) {
+            const selectedCouponData = availableCoupons.value[res.tapIndex];
+            validateAndSelectCoupon(selectedCouponData);
+          } else {
+            selectedCoupon.value = null;
+            // 重新计算价格
+            calculateFinalPrice();
+          }
         }
       });
+    };
+
+    // 验证并选择优惠券
+    const validateAndSelectCoupon = async (couponData) => {
+      try {
+        uni.showLoading({ title: '验证优惠券...' });
+        
+        const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
+        const projectIds = createOrderData.value.projectId ? [createOrderData.value.projectId] : [];
+        
+        const res = await api.coupons.validate({
+          couponCode: couponData.couponCode,
+          orderAmount: totalAmount,
+          projectIds: projectIds
+        });
+        
+        if (res.code === 200 && res.data.valid) {
+          selectedCoupon.value = {
+            id: res.data.couponId,
+            name: res.data.couponName,
+            code: couponData.couponCode,
+            discountAmount: res.data.discountAmount,
+            finalAmount: res.data.finalAmount
+          };
+          
+          // 重新计算价格
+          calculateFinalPrice();
+          
+          uni.showToast({
+            title: '优惠券验证成功',
+            icon: 'success'
+          });
+        } else {
+          uni.showToast({
+            title: res.data.message || '优惠券验证失败',
+            icon: 'error'
+          });
+        }
+      } catch (error) {
+        console.error('验证优惠券失败:', error);
+        uni.showToast({
+          title: '验证优惠券失败',
+          icon: 'error'
+        });
+      } finally {
+        uni.hideLoading();
+      }
+    };
+
+    // 计算最终价格
+    const calculateFinalPrice = async () => {
+      try {
+        const totalAmount = createOrderData.value.price * createOrderData.value.quantity;
+        const projectIds = createOrderData.value.projectId ? [createOrderData.value.projectId] : [];
+        
+        const res = await api.coupons.calculate({
+          originalAmount: totalAmount,
+          couponCode: selectedCoupon.value ? selectedCoupon.value.code : '',
+          projectIds: projectIds
+        });
+        
+        if (res.code === 200) {
+          // 更新价格信息
+          createOrderData.value.totalAmount = res.data.originalAmount;
+          createOrderData.value.discountAmount = res.data.discountAmount;
+          createOrderData.value.finalAmount = res.data.finalAmount;
+        }
+      } catch (error) {
+        console.error('计算价格失败:', error);
+      }
     };
     
     // 导航返回
@@ -393,10 +490,12 @@ export default {
     // 获取订单状态文本
     const getStatusText = (status) => {
       const statusMap = {
-        'pending': '待付款',
-        'shipping': '待服务',
+        'pending': '待支付',
+        'paid': '已支付',
+        'shipping': '服务中',
         'completed': '已完成',
-        'canceled': '已取消'
+        'cancelled': '已取消',
+        'refunded': '已退款'
       };
       return statusMap[status] || status;
     };
@@ -428,6 +527,122 @@ export default {
       }, 1500);
     };
     
+    // 生成核销码
+    const generateVerificationCode = async (orderId) => {
+      try {
+        uni.showLoading({ title: '生成中...' });
+        
+        const res = await api.orders.generateVerificationCode(orderId);
+        
+        if (res.code === 200) {
+          uni.hideLoading();
+          uni.showToast({ title: '核销码生成成功', icon: 'success' });
+          
+          // 更新订单列表中的核销码
+          const orderIndex = orders.value.findIndex(order => order.orderId === orderId);
+          if (orderIndex !== -1) {
+            orders.value[orderIndex].verificationCode = res.data.verificationCode;
+          }
+        } else {
+          uni.hideLoading();
+          uni.showToast({ title: res.message || '生成失败', icon: 'error' });
+        }
+      } catch (error) {
+        uni.hideLoading();
+        uni.showToast({ title: '生成失败', icon: 'error' });
+        console.error('生成核销码失败:', error);
+      }
+    };
+    
+    // 复制核销码
+    const copyVerificationCode = (verificationCode) => {
+      uni.setClipboardData({
+        data: verificationCode,
+        success: () => {
+          uni.showToast({ title: '核销码已复制', icon: 'success' });
+        },
+        fail: () => {
+          uni.showToast({ title: '复制失败', icon: 'error' });
+        }
+      });
+    };
+
+    // 申请服务
+    const requestService = async (orderId) => {
+      try {
+        uni.showModal({
+          title: '申请服务',
+          content: '确定要申请开始服务吗？',
+          success: async (res) => {
+            if (res.confirm) {
+              uni.showLoading({ title: '处理中...' });
+              
+              const result = await api.orders.updateStatus(orderId, 'shipping');
+              if (result.code === 200) {
+                uni.showToast({
+                  title: '服务申请成功',
+                  icon: 'success'
+                });
+                // 刷新订单列表
+                loadOrders();
+              } else {
+                uni.showToast({
+                  title: result.message || '申请失败',
+                  icon: 'error'
+                });
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('申请服务失败:', error);
+        uni.showToast({
+          title: '申请失败',
+          icon: 'error'
+        });
+      } finally {
+        uni.hideLoading();
+      }
+    };
+
+    // 取消订单
+    const cancelOrder = async (orderId) => {
+      try {
+        uni.showModal({
+          title: '取消订单',
+          content: '确定要取消这个订单吗？',
+          success: async (res) => {
+            if (res.confirm) {
+              uni.showLoading({ title: '处理中...' });
+              
+              const result = await api.orders.cancel(orderId);
+              if (result.code === 200) {
+                uni.showToast({
+                  title: '订单已取消',
+                  icon: 'success'
+                });
+                // 刷新订单列表
+                loadOrders();
+              } else {
+                uni.showToast({
+                  title: result.message || '取消失败',
+                  icon: 'error'
+                });
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('取消订单失败:', error);
+        uni.showToast({
+          title: '取消失败',
+          icon: 'error'
+        });
+      } finally {
+        uni.hideLoading();
+      }
+    };
+    
     // 获取项目详情用于创建订单
     const loadProjectDetailForCreate = async (projectId) => {
       try {
@@ -437,13 +652,6 @@ export default {
           createOrderData.value.projectName = project.name;
           createOrderData.value.price = project.price;
           
-          // 如果有技师信息也填充
-          if (createOrderData.value.technicianId && project.technicians) {
-            const technician = project.technicians.find(t => t.id === createOrderData.value.technicianId);
-            if (technician) {
-              createOrderData.value.technicianName = technician.name;
-            }
-          }
         }
       } catch (error) {
         console.error('获取项目详情失败:', error);
@@ -464,7 +672,6 @@ export default {
           projectId: params.projectId,
           projectName: params.projectName ? decodeURIComponent(params.projectName) : '',
           price: params.price ? parseFloat(params.price) : 0,
-          duration: params.duration ? decodeURIComponent(params.duration) : '',
           quantity: params.quantity ? parseInt(params.quantity) : 1,
           image: params.image ? decodeURIComponent(params.image) : ''
         };
@@ -510,10 +717,16 @@ export default {
       increaseQuantity,
       decreaseQuantity,
       selectCoupon,
+      validateAndSelectCoupon,
+      calculateFinalPrice,
       navigateBack,
       getStatusText,
       viewOrderDetail,
-      payOrder
+      payOrder,
+      generateVerificationCode,
+      copyVerificationCode,
+      requestService,
+      cancelOrder
     };
   }
 };
@@ -934,17 +1147,11 @@ export default {
   margin-bottom: 10rpx;
 }
 
-.order-time,
-.order-technician,
 .order-price {
   display: block;
   font-size: 28rpx;
-  color: #666666;
-  margin-bottom: 10rpx;
-}
-
-.order-price {
   color: #FF5000;
+  margin-bottom: 10rpx;
 }
 
 .order-actions {
@@ -966,5 +1173,60 @@ export default {
 .action-button.primary {
   background-color: #FF5000;
   color: #FFFFFF;
+}
+
+.action-button.success {
+  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+  color: #FFFFFF;
+}
+
+.action-button.warning {
+  background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+  color: #FFFFFF;
+}
+
+.action-button.danger {
+  background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
+  color: #FFFFFF;
+}
+
+.action-button.info {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: #FFFFFF;
+}
+
+.verification-code {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, #F0F8F0 0%, #E8F5E8 100%);
+  border-radius: 12rpx;
+  border: 2rpx solid #4CAF50;
+}
+
+.verification-label {
+  font-size: 28rpx;
+  color: #2E7D32;
+  font-weight: bold;
+  margin-right: 20rpx;
+}
+
+.verification-value {
+  flex: 1;
+  font-size: 32rpx;
+  color: #4CAF50;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2rpx;
+}
+
+.copy-button {
+  padding: 10rpx 20rpx;
+  background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+  color: #FFFFFF;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  border: none;
 }
 </style>

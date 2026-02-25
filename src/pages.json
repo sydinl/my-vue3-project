@@ -1,6 +1,14 @@
 {
 	"pages": [
 		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/home/home",
 			"style": {
 				"navigationBarTitleText": "SPA休闲会所",
@@ -146,6 +154,14 @@
 			"path": "pages/assets/my-coupons",
 			"style": {
 				"navigationBarTitleText": "我的优惠券",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/coupon/coupon-center",
+			"style": {
+				"navigationBarTitleText": "领券中心",
 				"navigationStyle": "custom",
 				"enablePullDownRefresh": false
 			}

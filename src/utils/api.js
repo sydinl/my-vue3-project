@@ -1,11 +1,105 @@
 // API基础配置
 const API_BASE_URL = 'https://iousxaoupndv.sealoshzh.site';
 
+// 导入用户管理器
+import userManager from './user-manager.js';
+
+// 处理token过期
+const handleTokenExpired = async () => {
+  try {
+    const refreshToken = uni.getStorageSync('refreshToken');
+    if (!refreshToken) {
+      throw new Error('没有刷新令牌');
+    }
+    
+    const response = await uni.request({
+      url: `${API_BASE_URL}/api/wechat/miniprogram/refresh-token`,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify({ refreshToken })
+    });
+    
+    if (response.data.code === 200) {
+      // 更新token
+      uni.setStorageSync('accessToken', response.data.data.accessToken);
+      return true;
+    } else {
+      throw new Error('刷新token失败');
+    }
+  } catch (error) {
+    console.error('刷新token失败:', error);
+    throw error;
+  }
+};
+
+// 重试请求
+const retryRequest = (url, method, data, options) => {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('accessToken');
+    
+    const requestOptions = {
+      url: `${API_BASE_URL}${url}`,
+      method,
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Access-Control-Allow-Origin': '*'
+      },
+      withCredentials: true,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          // 检查业务状态码
+          if (res.data && res.data.code === 2001) {
+            // 认证失败，跳转到登录页
+            uni.showToast({ title: res.data.message || '认证失败，请重新登录', icon: 'none' });
+            setTimeout(() => {
+              uni.reLaunch({ url: '/pages/login/login' });
+            }, 1500);
+            reject(new Error('认证失败'));
+            return;
+          }
+          resolve(res.data);
+        } else {
+          reject(new Error(`请求失败: ${res.statusCode}`));
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      },
+      ...options
+    };
+    
+    if (method === 'GET') {
+      requestOptions.data = data;
+    } else {
+      requestOptions.data = JSON.stringify(data);
+    }
+    
+    uni.request(requestOptions);
+  });
+};
+
 // 请求方法封装
 const request = (url, method, data = {}, options = {}) => {
   return new Promise((resolve, reject) => {
-    // 获取存储的token
-    const token = uni.getStorageSync('userToken');
+    // 获取存储的token（优先使用微信登录的accessToken）
+    const wechatToken = uni.getStorageSync('accessToken');
+    const userToken = uni.getStorageSync('userToken');
+    const token = wechatToken || userToken;
+    
+    // 检查是否需要token的接口
+    const needAuth = !url.includes('/login') && !url.includes('/register') && !url.includes('/public');
+    
+    if (needAuth && !token) {
+      uni.showToast({ title: '请先登录', icon: 'none' });
+      setTimeout(() => {
+        uni.reLaunch({ url: '/pages/login/login' });
+      }, 1500);
+      reject(new Error('用户未登录'));
+      return;
+    }
     
     // 构建请求参数
     const requestOptions = {
@@ -21,14 +115,30 @@ const request = (url, method, data = {}, options = {}) => {
       withCredentials: true,
       success: (res) => {
         if (res.statusCode === 200) {
+          // 检查业务状态码
+          if (res.data && res.data.code === 2001) {
+            // 认证失败，跳转到登录页
+            uni.showToast({ title: res.data.message || '认证失败，请重新登录', icon: 'none' });
+            setTimeout(() => {
+              uni.reLaunch({ url: '/pages/login/login' });
+            }, 1500);
+            reject(new Error('认证失败'));
+            return;
+          }
           resolve(res.data);
         } else if (res.statusCode === 401) {
-          // 未授权，跳转到登录页
-          uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
-          setTimeout(() => {
-            uni.redirectTo({ url: '/pages/index/index' });
-          }, 1500);
-          reject(new Error('未授权'));
+          // 未授权，尝试刷新token
+          handleTokenExpired().then(() => {
+            // 刷新成功后重试请求
+            retryRequest(url, method, data, options).then(resolve).catch(reject);
+          }).catch(() => {
+            // 刷新失败，跳转到登录页
+            uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
+            setTimeout(() => {
+              uni.reLaunch({ url: '/pages/login/login' });
+            }, 1500);
+            reject(new Error('未授权'));
+          });
         } else {
           uni.showToast({ title: res.data?.message || '请求失败', icon: 'none' });
           reject(new Error(res.data?.message || `请求失败: ${res.statusCode}`));
@@ -79,19 +189,37 @@ const api = {
     logout: () => request('/api/user/logout', 'POST')
   },
   
+  // 微信小程序登录相关接口
+  wechat: {
+    // 微信小程序登录
+    miniprogramLogin: (data) => request('/api/wechat/miniprogram/login', 'POST', data),
+    
+    // 刷新访问令牌
+    refreshToken: (data) => request('/api/wechat/miniprogram/refresh-token', 'POST', data),
+    
+    // 验证访问令牌
+    validateToken: (data) => request('/api/wechat/miniprogram/validate-token', 'POST', data),
+    
+    // 获取用户信息
+    getUserInfo: () => request('/api/wechat/miniprogram/userinfo', 'GET')
+  },
+  
   // 订单相关接口
   orders: {
-    // 获取订单列表
-    getList: (params) => request('/api/order/list', 'GET', handlePageParams(params)),
+    // 创建订单（简单方式）
+    createSimple: (data) => request('/api/order/', 'POST', data),
     
-    // 按状态获取订单列表
-    getListByStatus: (params) => request('/api/order/listByStatus', 'GET', handlePageParams(params)),
+    // 创建订单（支付方式）
+    create: (data) => request('/api/order/create', 'POST', data),
     
     // 获取订单详情
     getDetail: (orderId) => request('/api/order/detail', 'GET', { orderId }),
     
-    // 创建订单
-    create: (data) => request('/api/order/create', 'POST', data),
+    // 获取用户订单列表
+    getList: (params) => request('/api/order/list', 'GET', handlePageParams(params)),
+    
+    // 按状态获取订单列表
+    getListByStatus: (params) => request('/api/order/listByStatus', 'GET', handlePageParams(params)),
     
     // 更新订单状态
     updateStatus: (orderId, status) => request('/api/order/status', 'PUT', { orderId, status }),
@@ -100,7 +228,55 @@ const api = {
     cancel: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'cancelled' }),
     
     // 确认收货
-    confirm: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'completed' })
+    confirm: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'completed' }),
+    
+    // 生成核销码
+    generateVerificationCode: (orderId) => request('/api/order/verification/generate', 'POST', { orderId }),
+    
+    // 获取核销码
+    getVerificationCode: (orderId) => request('/api/order/verification/get', 'GET', { orderId })
+  },
+
+  // 优惠券相关接口
+  coupons: {
+    // 验证优惠券
+    validate: (data) => request('/api/order/coupon/validate', 'POST', data),
+    
+    // 获取可用优惠券列表
+    getAvailable: (params) => request('/api/order/coupon/available', 'GET', params),
+    
+    // 计算最终金额
+    calculate: (data) => request('/api/order/coupon/calculate', 'POST', data),
+    
+    // 用户领取优惠券（需要认证）
+    claim: (data) => request('/api/coupons/user/claim', 'POST', data),
+    
+    // 获取用户优惠券列表（需要认证）
+    getUserCoupons: (params) => request('/api/coupons/user/list', 'GET', params),
+    
+    // 获取用户可用优惠券（需要认证）
+    getUserAvailable: () => request('/api/coupons/user/available', 'GET'),
+    
+    // 使用用户优惠券（需要认证）
+    use: (data) => request('/api/coupons/user/use', 'POST', data),
+    
+    // 获取用户优惠券统计（需要认证）
+    getUserStatistics: () => request('/api/coupons/user/statistics', 'GET'),
+    
+    // 公开领取优惠券（不需要认证）
+    publicClaim: (data) => request('/api/coupons/public/claim', 'POST', data),
+    
+    // 公开获取用户优惠券列表（不需要认证）
+    publicGetUserCoupons: (params) => request('/api/coupons/public/user/list', 'GET', params),
+    
+    // 公开获取用户可用优惠券（不需要认证）
+    publicGetUserAvailable: (params) => request('/api/coupons/public/user/available', 'GET', params),
+    
+    // 公开验证优惠券（不需要认证）
+    publicValidate: (data) => request('/api/coupons/validate', 'POST', data),
+    
+    // 公开获取优惠券列表（不需要认证）
+    publicGetCoupons: (params) => request('/api/coupons/public/list', 'GET', params)
   },
   
   // 支付相关接口
@@ -109,9 +285,9 @@ const api = {
     getWeChatPayParams: (data) => request('/api/order/payment/wechat/params', 'POST', data),
     
     // 查询支付状态
-    queryStatus: (data) => request('/api/order/payment/status', 'GET', data),
+    queryStatus: (orderId) => request('/api/order/payment/status', 'GET', { orderId }),
     
-    // 支付回调处理
+    // 支付回调处理（内部使用）
     callback: (data) => request('/api/order/payment/callback', 'POST', data),
     
     // 申请退款

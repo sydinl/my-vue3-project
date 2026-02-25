@@ -155,10 +155,10 @@
     <view class="sheet-overlay" @click="closeBottomSheet"></view>
     <view class="sheet-content">
       <view class="sheet-header">
-        <image v-if="selectedService" :src="selectedService.img" class="selected-image"></image>
-        <view v-if="selectedService" class="selected-info">
-          <text class="selected-name">{{selectedService.name}}</text>
-          <text class="selected-price">¥{{selectedService.price}}</text>
+        <image v-if="selectedItem" :src="selectedItem.img" class="selected-image"></image>
+        <view v-if="selectedItem" class="selected-info">
+          <text class="selected-name">{{selectedItem.name}}</text>
+          <text class="selected-price">¥{{selectedItem.price}}</text>
         </view>
         <view class="sheet-close" @click="closeBottomSheet">
           <image :src="closeIcon" class="close-icon"></image>
@@ -487,7 +487,7 @@ export default {
     // 使用公共的添加购物车功能
     const {
       showBottomSheet,
-      selectedItem: selectedService,
+      selectedItem,
       durationOptions: durations,
       selectedDuration,
       quantity,
@@ -524,6 +524,12 @@ export default {
       goToDistributionCenter,
       goToMemberCenter,
       addToCart,
+      showBottomSheet,
+      selectedItem,
+      durations,
+      selectedDuration,
+      quantity,
+      stockCount,
       openBottomSheet,
       closeBottomSheet,
       selectDuration,

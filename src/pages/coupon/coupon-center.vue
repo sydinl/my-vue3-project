@@ -13,21 +13,8 @@
       </view>
     </view>
 
-    <!-- 优惠券状态选项卡 -->
-    <view class="tabs">
-      <view class="tab-item" :class="{ active: currentTab === 'unused' }" @click="switchTab('unused')">
-        <text>未使用</text>
-      </view>
-      <view class="tab-item" :class="{ active: currentTab === 'used' }" @click="switchTab('used')">
-        <text>已使用</text>
-      </view>
-      <view class="tab-item" :class="{ active: currentTab === 'expired' }" @click="switchTab('expired')">
-        <text>已过期</text>
-      </view>
-    </view>
-
-    <!-- 内容区域 -->
-    <view class="content">
+    <!-- 优惠券列表 -->
+    <view class="coupon-list">
       <view v-if="loading" class="loading-state">
         <uni-icons type="spinner-cycle" size="40" class="loading-icon"></uni-icons>
         <text class="loading-text">加载中...</text>
@@ -35,10 +22,10 @@
       
       <view v-else-if="coupons.length === 0" class="empty-state">
         <image src="/static/icons/no-result.png" mode="aspectFit" class="empty-icon"></image>
-        <text class="empty-text">暂无相关优惠券</text>
+        <text class="empty-text">暂无优惠券</text>
       </view>
       
-      <view v-else class="coupon-list">
+      <view v-else>
         <view v-for="coupon in coupons" :key="coupon.id" class="coupon-item">
           <view class="coupon-content">
             <view class="coupon-left">
@@ -55,17 +42,21 @@
                 <text class="coupon-desc">{{ coupon.description }}</text>
                 <text class="coupon-condition">满¥{{ coupon.minOrderAmount }}可用</text>
                 <text class="coupon-expire">有效期至：{{ formatDate(coupon.validUntil) }}</text>
-                <text class="coupon-status" :class="getStatusClass(coupon.status)">{{ getStatusText(coupon.status) }}</text>
+              </view>
+              <view class="coupon-actions">
+                <button 
+                  class="use-btn" 
+                  :class="{ disabled: !isCouponAvailable(coupon) }"
+                  @click="useCoupon(coupon)"
+                  :disabled="!isCouponAvailable(coupon)"
+                >
+                  {{ getButtonText(coupon) }}
+                </button>
               </view>
             </view>
           </view>
         </view>
       </view>
-    </view>
-
-    <!-- 底部去领券按钮 -->
-    <view class="bottom-button">
-      <button class="go-receive-btn" @click="goToReceiveCoupons">去领券</button>
     </view>
   </view>
 </template>
@@ -76,7 +67,7 @@ import api from '../../utils/api';
 import userManager from '../../utils/user-manager.js';
 
 export default {
-  name: 'MyCoupons',
+  name: 'CouponCenter',
   setup() {
     // 状态栏高度
     const statusBarHeight = ref(0);
@@ -104,27 +95,20 @@ export default {
     // 优惠券数据
     const coupons = ref([]);
     const loading = ref(false);
-    const currentTab = ref('unused');
 
     // 导航返回
     const navigateBack = () => {
       uni.navigateBack();
     };
 
-    // 切换选项卡
-    const switchTab = (tab) => {
-      currentTab.value = tab;
-      getCouponsList();
-    };
-
     // 获取优惠券列表
     const getCouponsList = async () => {
       loading.value = true;
       try {
-        // 使用公开接口获取用户优惠券列表
+        // 使用公开接口获取用户已领取的未使用优惠券列表
         const res = await api.coupons.publicGetUserCoupons({
           userId: userManager.getUserId(),
-          status: currentTab.value.toUpperCase(),
+          status: 'UNUSED', // 获取未使用的优惠券
           page: 1,
           size: 20
         });
@@ -148,24 +132,30 @@ export default {
       }
     };
 
-    // 获取状态文本
-    const getStatusText = (status) => {
-      const statusMap = {
-        'UNUSED': '未使用',
-        'USED': '已使用',
-        'EXPIRED': '已过期'
-      };
-      return statusMap[status] || status;
+    // 使用优惠券
+    const useCoupon = (coupon) => {
+      // 跳转到订单页面使用优惠券
+      uni.navigateTo({
+        url: '/pages/orders/my-orders?action=create&couponId=' + coupon.id
+      });
     };
 
-    // 获取状态样式类
-    const getStatusClass = (status) => {
-      const classMap = {
-        'UNUSED': 'unused',
-        'USED': 'used',
-        'EXPIRED': 'expired'
-      };
-      return classMap[status] || '';
+    // 获取按钮文本
+    const getButtonText = (coupon) => {
+      // 检查优惠券是否过期
+      const now = new Date();
+      const validUntil = new Date(coupon.validUntil);
+      if (now > validUntil) {
+        return '已过期';
+      }
+      return '立即使用';
+    };
+
+    // 检查优惠券是否可用
+    const isCouponAvailable = (coupon) => {
+      const now = new Date();
+      const validUntil = new Date(coupon.validUntil);
+      return now <= validUntil;
     };
 
     // 格式化日期
@@ -173,13 +163,6 @@ export default {
       if (!dateString) return '';
       const date = new Date(dateString);
       return date.toLocaleDateString('zh-CN');
-    };
-
-    // 去领券
-    const goToReceiveCoupons = () => {
-      uni.navigateTo({
-        url: '/pages/coupon/coupon-center'
-      });
     };
 
     // 页面加载时获取数据
@@ -192,13 +175,11 @@ export default {
       statusBarHeight,
       coupons,
       loading,
-      currentTab,
       navigateBack,
-      switchTab,
-      getStatusText,
-      getStatusClass,
-      formatDate,
-      goToReceiveCoupons
+      useCoupon,
+      getButtonText,
+      isCouponAvailable,
+      formatDate
     };
   }
 };
@@ -210,8 +191,6 @@ export default {
   margin: 0 auto;
   background: linear-gradient(180deg, #F0F8F0 0%, #E8F5E8 100%);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .status-bar {
@@ -257,43 +236,7 @@ export default {
   margin-left: 32rpx;
 }
 
-.tabs {
-  display: flex;
-  background-color: #FFFFFF;
-  border-bottom: 1px solid #f0f0f0;
-  margin: 0 20rpx;
-  border-radius: 16rpx 16rpx 0 0;
-  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.1);
-}
-
-.tab-item {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20rpx 0;
-  position: relative;
-}
-
-.tab-item.active text {
-  color: #4CAF50;
-  font-weight: bold;
-}
-
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60rpx;
-  height: 6rpx;
-  background-color: #4CAF50;
-  border-radius: 3rpx;
-}
-
-.content {
-  flex: 1;
+.coupon-list {
   padding: 20rpx;
 }
 
@@ -341,15 +284,10 @@ export default {
   color: #999999;
 }
 
-.coupon-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
 .coupon-item {
   background-color: #FFFFFF;
   border-radius: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.1);
   overflow: hidden;
 }
@@ -427,40 +365,29 @@ export default {
   font-size: 22rpx;
   color: #FF9800;
   display: block;
-  margin-bottom: 8rpx;
 }
 
-.coupon-status {
-  font-size: 24rpx;
+.coupon-actions {
+  margin-left: 20rpx;
+}
+
+.use-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 25rpx;
+  padding: 16rpx 32rpx;
+  font-size: 26rpx;
   font-weight: bold;
-  display: block;
+  min-width: 120rpx;
 }
 
-.coupon-status.unused {
-  color: #4CAF50;
-}
-
-.coupon-status.used {
+.use-btn.disabled {
+  background: #CCCCCC;
   color: #999999;
 }
 
-.coupon-status.expired {
-  color: #F44336;
-}
-
-.bottom-button {
-  background-color: #FFFFFF;
-  padding: 20rpx 30rpx;
-  border-top: 1px solid #f0f0f0;
-}
-
-.go-receive-btn {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  color: #FFFFFF;
-  border-radius: 50rpx;
-  font-size: 32rpx;
-  padding: 20rpx 0;
-  line-height: 1.5;
-  border: none;
+.use-btn:not(.disabled):active {
+  background: linear-gradient(135deg, #388E3C 0%, #4CAF50 100%);
 }
 </style>
