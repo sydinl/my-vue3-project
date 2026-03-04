@@ -1,5 +1,6 @@
 // API基础配置
-const API_BASE_URL = 'https://iousxaoupndv.sealoshzh.site';
+// const API_BASE_URL = 'https://iousxaoupndv.sealoshzh.site';
+const API_BASE_URL = 'https://wkudoxukpypt.sealoshzh.site';
 
 // 导入用户管理器
 import userManager from './user-manager.js';

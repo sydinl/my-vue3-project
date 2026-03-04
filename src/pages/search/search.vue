@@ -95,15 +95,15 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 
-// 导入项目图片
-import img1 from '../../static/items/sheng.jpg';
-import img2 from '../../static/items/tang.jpg';
-import img3 from '../../static/items/shui.jpg';
-import img4 from '../../static/items/chan.jpg';
-import img5 from '../../static/items/yue.jpg';
-import img6 from '../../static/items/yi.jpg';
-import img7 from '../../static/items/yun.jpg';
-import img8 from '../../static/items/chayi.jpg';
+// 项目图片使用云存储HTTP地址，兼容H5与小程序
+const img1 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/sheng.jpg';
+const img2 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang.jpg';
+const img3 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg';
+const img4 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/chan.jpg';
+const img5 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yue.jpg';
+const img6 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yi.jpg';
+const img7 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg';
+const img8 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/chayi.jpg';
 
 export default {
   name: 'SearchPage',

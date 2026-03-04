@@ -51,9 +51,9 @@
 import { ref, computed, onMounted } from 'vue';
 import weChatPayment from '../../utils/payment.js';
 
-// 直接导入图片
-import img1 from '../../static/items/sheng.jpg';
-import img2 from '../../static/items/yue.jpg';
+// 默认商品图片使用云存储HTTP地址，兼容H5与小程序
+const defaultImg1 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/sheng.jpg';
+const defaultImg2 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yue.jpg';
 
 // 购物车存储键名
 const CART_STORAGE_KEY = 'spa_cart_items';
@@ -107,7 +107,7 @@ export default {
             originalPrice: 168,
             quantity: 1,
             duration: '60分钟',
-            img: img1
+            img: defaultImg1
           },
           {
             id: 2,
@@ -116,7 +116,7 @@ export default {
             originalPrice: 328,
             quantity: 1,
             duration: '90分钟',
-            img: img2
+            img: defaultImg2
           }
         ];
         saveCartItems();

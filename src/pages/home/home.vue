@@ -212,12 +212,7 @@ console.log('Home页面API对象:', api);
 // 导入公共的添加购物车功能
 import { useAddToCart } from '../../utils/cart-utils';
 
-// 直接导入图片
-import slide1 from '../../static/items/wxpic_head_20250822000722.jpg';
-import slide2 from '../../static/items/wxpic_head_20250822000825.jpg';
-import slide3 from '../../static/items/wxpic_head_20250901194736.jpg';
-import slide4 from '../../static/items/wxpic_head_20250901194745.jpg';
-
+// 入口与图标图片
 import entry1 from '../../static/items/distribution-certificate.png';
 import entry2 from '../../static/items/member-certificate.png';
 import closeIcon from '../../static/icons/close.png';
@@ -295,12 +290,12 @@ export default {
       });
     };
     
-    // 轮播图数据 - 初始使用本地图片，后续可以从API获取
+    // 轮播图数据 - 使用云存储HTTP地址，兼容H5与小程序
     const slides = ref([
-      { img: slide1, text: '' },
-      { img: slide2, text: '' },
-      { img: slide3, text: '' },
-      { img: slide4, text: '' }
+      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250822000722.jpg', text: '' },
+      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250901194736.jpg', text: '' },
+      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250901194745.jpg', text: '' },
+      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250822000825.jpg', text: '' }
     ]);
     
     // 服务项目数据
@@ -372,10 +367,10 @@ export default {
           console.log('热门项目API返回数据格式不正确，使用模拟数据');
           // API返回成功但数据格式不正确，使用模拟数据
           services.value = [
-            { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: '/static/items/wxpic_202508220008253.jpg' },
-            { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: '/static/items/wxpic_202508220008254.jpg' },
-            { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: '/static/items/wxpic_20250824234702.jpg' },
-            { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: '/static/items/wxpic_202508220008262.jpg' }
+            { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang_202508220008253.jpg' },
+            { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' },
+            { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg' },
+            { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' }
           ];
         }
         
@@ -392,22 +387,22 @@ export default {
         } else {
           // API返回成功但数据格式不正确，使用模拟数据
           packages.value = [
-            { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/sheng.jpg' },
-            { id: 2, name: '禅SPA', price: 298, duration: '80分钟', img: '/static/items/chan.jpg' }
+            { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/sheng.jpg' },
+            { id: 2, name: '禅SPA', price: 298, duration: '80分钟', img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/chan_202508220008265.jpg' }
           ];
         }
       } catch (error) {
         console.error('获取项目数据失败:', error);
         // 使用模拟数据作为备用
         services.value = [
-          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: '/static/items/tang.jpg' },
-          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: '/static/items/yue.jpg' },
-          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: '/static/items/shui.jpg' },
-          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: '/static/items/yun.jpg' }
+          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang.jpg' },
+          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yue.jpg' },
+          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg' },
+          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' }
         ];
         packages.value = [
-          { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: '/static/items/wxpic_202508220008252.jpg' },
-          { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: '/static/items/wxpic_202508220008261.jpg' }
+          { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/sheng.jpg' },
+          { id: 2, name: '清SPA', price: 298, duration: '80分钟', img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/jing_202508220008263.jpg' }
         ];
       }
     };
