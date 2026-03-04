@@ -1,5 +1,5 @@
-// API基础配置
-const API_BASE_URL = 'https://iousxaoupndv.sealoshzh.site';
+// API基础配置（支持通过环境变量在开发环境切换到本地后端）
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://iousxaoupndv.sealoshzh.site';
 
 // 导入用户管理器
 import userManager from './user-manager.js';

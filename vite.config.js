@@ -38,15 +38,16 @@ export default defineConfig({
         'Cache-Control': 'max-age=31536000'
       }
     },
-    // 配置代理处理跨域问题
-    // proxy: {
-    //   '/api': {
-    //     target: 'https://iousxaoupndv.sealoshzh.site',
-    //     changeOrigin: true,
-    //     secure: true, // 允许https
-    //     rewrite: (path) => path.replace(/^\/api/, '/api')
-    //   }
-    // }
+    // 配置代理处理跨域问题（开发环境将 /api 转发到本机 8080 后端）
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        // 不修改路径，直接透传 /api 开头的路径
+        rewrite: (path) => path
+      }
+    }
   },
   // 构建配置
   build: {
