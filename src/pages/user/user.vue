@@ -36,7 +36,7 @@
     <view class="orders-section">
       <view class="section-header">
         <text class="section-title">我的订单</text>
-        <text class="more-link" @click="viewAllOrders">查看更多 &gt;</text>
+        <text class="more-link" @click="viewAllOrders">查看更多 ></text>
       </view>
       
       <view class="order-status-items">
