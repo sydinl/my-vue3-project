@@ -41,9 +41,9 @@
             </view>
             <text class="agreement-text">
               我已阅读并同意
-              <text class="agreement-link" @click.stop="showUserAgreement">《用户协议》</text>
+              <text class="agreement-link" @click.stop="goUserAgreement">《用户服务协议》</text>
               和
-              <text class="agreement-link" @click.stop="showPrivacyPolicy">《隐私政策》</text>
+              <text class="agreement-link" @click.stop="goPrivacyPolicy">《隐私政策》</text>
             </text>
           </view>
         </view>
@@ -153,21 +153,17 @@ export default {
       }
     };
 
-    // 显示用户协议
-    const showUserAgreement = () => {
-      uni.showModal({
-        title: '用户协议',
-        content: '这里是用户协议的内容...',
-        showCancel: false
+    // 跳转用户服务协议页面
+    const goUserAgreement = () => {
+      uni.navigateTo({
+        url: '/pages/agreement/user-agreement'
       });
     };
 
-    // 显示隐私政策
-    const showPrivacyPolicy = () => {
-      uni.showModal({
-        title: '隐私政策',
-        content: '这里是隐私政策的内容...',
-        showCancel: false
+    // 跳转隐私政策页面
+    const goPrivacyPolicy = () => {
+      uni.navigateTo({
+        url: '/pages/agreement/privacy-policy'
       });
     };
 
@@ -198,8 +194,8 @@ export default {
       hasAgreed,
       handleWechatLogin,
       toggleAgreement,
-      showUserAgreement,
-      showPrivacyPolicy
+      goUserAgreement,
+      goPrivacyPolicy
     };
   }
 };
