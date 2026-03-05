@@ -24,7 +24,7 @@
         <button 
           class="wechat-login-btn" 
           @click="handleWechatLogin"
-          :disabled="loginLoading"
+          :disabled="loginLoading || !hasAgreed"
         >
           <image src="/static/icons/wechat.png" class="wechat-icon" v-if="!loginLoading"></image>
           <uni-loading v-if="loginLoading" size="20" color="#FFFFFF"></uni-loading>
@@ -33,14 +33,19 @@
           </text>
         </button>
 
-        <!-- 服务协议 -->
+        <!-- 服务协议：用户主动勾选后才能登录 -->
         <view class="agreement-section">
-          <text class="agreement-text">
-            登录即表示同意
-            <text class="agreement-link" @click="showUserAgreement">《用户协议》</text>
-            和
-            <text class="agreement-link" @click="showPrivacyPolicy">《隐私政策》</text>
-          </text>
+          <view class="agreement-wrapper" @click="toggleAgreement">
+            <view class="agreement-checkbox" :class="{ checked: hasAgreed }">
+              <view class="agreement-checkbox-inner" v-if="hasAgreed"></view>
+            </view>
+            <text class="agreement-text">
+              我已阅读并同意
+              <text class="agreement-link" @click.stop="showUserAgreement">《用户协议》</text>
+              和
+              <text class="agreement-link" @click.stop="showPrivacyPolicy">《隐私政策》</text>
+            </text>
+          </view>
         </view>
       </view>
 
@@ -79,6 +84,7 @@ export default {
     // 状态栏高度
     const statusBarHeight = ref(0);
     const loginLoading = ref(false);
+    const hasAgreed = ref(false);
 
     // 获取系统信息
     const getSystemInfo = () => {
@@ -100,14 +106,30 @@ export default {
       });
     };
 
+    // 切换是否同意协议
+    const toggleAgreement = () => {
+      hasAgreed.value = !hasAgreed.value;
+    };
+
     // 微信登录
     const handleWechatLogin = async () => {
+      if (!hasAgreed.value) {
+        uni.showToast({
+          title: '请先阅读并勾选同意《用户协议》和《隐私政策》',
+          icon: 'none'
+        });
+        return;
+      }
+
       try {
         loginLoading.value = true;
         
         const result = await wechatLoginManager.login();
         
         if (result.success) {
+          // 记录用户已同意隐私政策
+          uni.setStorageSync('privacyAgreed', true);
+
           uni.showToast({
             title: result.isNewUser ? '欢迎新用户！' : '登录成功',
             icon: 'success'
@@ -149,8 +171,13 @@ export default {
       });
     };
 
-    // 检查是否已登录
+    // 检查是否已登录（仅在用户已同意隐私政策的前提下自动登录）
     const checkLoginStatus = async () => {
+      const privacyAgreed = uni.getStorageSync('privacyAgreed');
+      if (!privacyAgreed) {
+        return;
+      }
+
       const isLoggedIn = await wechatLoginManager.autoLogin();
       if (isLoggedIn) {
         // 已登录，直接跳转到首页
@@ -168,7 +195,9 @@ export default {
     return {
       statusBarHeight,
       loginLoading,
+      hasAgreed,
       handleWechatLogin,
+      toggleAgreement,
       showUserAgreement,
       showPrivacyPolicy
     };
@@ -293,6 +322,36 @@ export default {
 
 .agreement-section {
   text-align: center;
+}
+
+.agreement-wrapper {
+  margin-top: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agreement-checkbox {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid #4CAF50;
+  margin-right: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFFFFF;
+}
+
+.agreement-checkbox.checked {
+  background-color: #4CAF50;
+}
+
+.agreement-checkbox-inner {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 4rpx;
+  background-color: #FFFFFF;
 }
 
 .agreement-text {
