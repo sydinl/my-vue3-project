@@ -375,6 +375,8 @@ const api = {
     getTeam: () => request('/api/distribution/team', 'GET'),
     // 推广信息（referrerId / scene 用于生成链接或小程序码）
     getPromotionInfo: () => request('/api/distribution/promotion-info', 'GET'),
+    // 分销排行（按佣金）
+    getRanking: (params) => request('/api/distribution/ranking', 'GET', params || {}),
     // 获取提现记录
     getWithdrawals: (params) => request('/api/distribution/withdrawals', 'GET', handlePageParams(params)),
     

@@ -29,37 +29,32 @@
 
     <!-- 排行榜类别 -->
     <view class="ranking-category">
-      <text class="category-text">推广人数</text>
+      <text class="category-text">累计佣金</text>
     </view>
 
     <!-- 排行榜列表 -->
     <view class="ranking-list">
-      <!-- 排名标题 -->
       <view class="ranking-header-row">
         <text class="rank-title">排名</text>
         <text class="nickname-title">昵称</text>
-        <text class="count-title">推广人数(人)</text>
+        <text class="count-title">累计佣金(元)</text>
       </view>
 
-      <!-- 排行榜数据 -->
-      <view class="ranking-item" v-for="(item, index) in rankingData" :key="index">
-        <!-- 排名 -->
+      <view v-if="loading" class="empty-tip">加载中...</view>
+      <view v-else-if="rankingData.length === 0" class="empty-tip">暂无排行数据</view>
+      <view v-else class="ranking-item" v-for="(item, index) in rankingData" :key="item.userId || index">
         <view class="rank-number">
-          <text v-if="index === 0" class="rank-first">1</text>
-          <text v-else-if="index === 1" class="rank-second">2</text>
-          <text v-else-if="index === 2" class="rank-third">3</text>
-          <text v-else class="rank-other">{{ index + 1 }}</text>
+          <text v-if="item.rank === 1" class="rank-first">1</text>
+          <text v-else-if="item.rank === 2" class="rank-second">2</text>
+          <text v-else-if="item.rank === 3" class="rank-third">3</text>
+          <text v-else class="rank-other">{{ item.rank }}</text>
         </view>
-        
-        <!-- 头像和昵称 -->
         <view class="user-info">
-          <image :src="item.avatar" mode="aspectFit" class="user-avatar"></image>
-          <text class="user-nickname">{{ item.nickname }}</text>
+          <image :src="item.avatar || '/static/icons/user.png'" mode="aspectFit" class="user-avatar"></image>
+          <text class="user-nickname">{{ item.fullName || item.username || '用户' }}</text>
         </view>
-        
-        <!-- 推广人数 -->
         <view class="promote-count">
-          <text class="count-text">{{ item.count }}</text>
+          <text class="count-text">¥{{ formatMoney(item.totalCommission) }}</text>
         </view>
       </view>
     </view>
@@ -68,108 +63,60 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+import api from '@/utils/api.js';
+
+function formatMoney(v) {
+  if (v == null || isNaN(v)) return '0.00';
+  return Number(v).toFixed(2);
+}
 
 export default {
   name: 'DistributionRanking',
   setup() {
-    // 状态栏高度
-    const statusBarHeight = ref(0);
-    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
-    
-    // 获取系统信息
+    const statusBarHeight = ref(20);
+    const rankingData = ref([]);
+    const loading = ref(false);
+
     const getSystemInfo = () => {
       uni.getSystemInfo({
         success: (res) => {
-          statusBarHeight.value = res.statusBarHeight || 0;
-          if (res.safeAreaInsets) {
-            safeAreaInsets.value = res.safeAreaInsets;
-            if (res.safeAreaInsets.top > res.statusBarHeight) {
-              statusBarHeight.value = res.safeAreaInsets.top;
-            }
-          }
-          // 针对iPhone X系列设备
-          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
-            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
-          }
-          // 确保最小高度
-          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
+          statusBarHeight.value = Math.max(res.statusBarHeight || 20, 20);
         }
       });
     };
-    
-    // 排行榜数据
-    const rankingData = ref([
-      {
-        nickname: 'K',
-        avatar: '/static/icons/user.svg',
-        count: 156
-      },
-      {
-        nickname: '7777777',
-        avatar: '/static/icons/user.svg',
-        count: 94
-      },
-      {
-        nickname: 'Amy🍓',
-        avatar: '/static/icons/user.svg',
-        count: 27
-      },
-      {
-        nickname: 'AAAAA',
-        avatar: '/static/icons/user.svg',
-        count: 26
-      },
-      {
-        nickname: 'S',
-        avatar: '/static/icons/user.svg',
-        count: 16
-      },
-      {
-        nickname: '用户_201487',
-        avatar: '/static/icons/user.svg',
-        count: 13
-      },
-      {
-        nickname: 'AI丶',
-        avatar: '/static/icons/user.svg',
-        count: 12
-      },
-      {
-        nickname: '缘',
-        avatar: '/static/icons/user.svg',
-        count: 10
+
+    const fetchRankingData = async () => {
+      loading.value = true;
+      try {
+        const res = await api.distribution.getRanking({ limit: 20 });
+        if (res && res.code === 200 && res.data) {
+          rankingData.value = res.data;
+        } else {
+          rankingData.value = [];
+        }
+      } catch (e) {
+        rankingData.value = [];
+      } finally {
+        loading.value = false;
       }
-    ]);
-    
-    // 返回上一页
-    const navigateBack = () => {
-      uni.navigateBack();
     };
-    
-    // 获取排行榜数据
-    const fetchRankingData = () => {
-      // 实际项目中这里应该调用接口获取排行榜数据
-      // 模拟数据加载
-      setTimeout(() => {
-        // 数据已经在data中定义
-        console.log('排行榜数据已加载');
-      }, 300);
-    };
-    
-    // 页面加载时获取系统信息
+
+    const navigateBack = () => uni.navigateBack();
+
     onMounted(() => {
       getSystemInfo();
       fetchRankingData();
     });
-    
+
     return {
       statusBarHeight,
       rankingData,
+      loading,
       navigateBack,
-      fetchRankingData
+      formatMoney
     };
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -283,6 +230,13 @@ export default {
   
   .ranking-list {
     background-color: #ffffff;
+
+    .empty-tip {
+      text-align: center;
+      padding: 40px;
+      font-size: 14px;
+      color: #999;
+    }
     
     .ranking-header-row {
       display: flex;
