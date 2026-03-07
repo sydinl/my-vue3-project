@@ -12,10 +12,10 @@
       </view>
     </view>
 
-    <!-- 用户信息区域 -->
-    <view class="user-info-section">
+    <!-- 用户信息区域：点击头像/姓名进入个人资料 -->
+    <view class="user-info-section" @click="viewPersonalInfo">
       <view class="user-avatar">
-        <image src="/static/icons/user.png" mode="aspectFit" class="avatar"></image>
+        <image :src="userInfo.avatar || '/static/icons/user.png'" mode="aspectFit" class="avatar"></image>
       </view>
       <view class="user-details">
         <view class="user-name">{{ userInfo.name }}</view>
@@ -26,7 +26,7 @@
           </view>
         </view>
       </view>
-      <view class="user-actions">
+      <view class="user-actions" @click.stop>
         <uni-icons type="map" size="24" class="action-icon" @click="viewStoreLocations"></uni-icons>
         <uni-icons type="setting" size="24" class="action-icon" @click="showSettings"></uni-icons>
       </view>
