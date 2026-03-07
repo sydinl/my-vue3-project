@@ -373,6 +373,8 @@ const api = {
     getOrders: (params) => request('/api/distribution/orders', 'GET', handlePageParams(params)),
     // 我的团队（一级、二级下级）
     getTeam: () => request('/api/distribution/team', 'GET'),
+    // 推广信息（referrerId / scene 用于生成链接或小程序码）
+    getPromotionInfo: () => request('/api/distribution/promotion-info', 'GET'),
     // 获取提现记录
     getWithdrawals: (params) => request('/api/distribution/withdrawals', 'GET', handlePageParams(params)),
     

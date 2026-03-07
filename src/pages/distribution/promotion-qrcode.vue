@@ -16,22 +16,35 @@
       <view class="user-avatar">
         <image src="/static/icons/user.png" mode="aspectFit" class="avatar"></image>
       </view>
-      <view class="user-name">用户_1283323</view>
+      <view class="user-name">我的推广</view>
     </view>
 
-    <!-- 二维码展示区域 -->
+    <!-- 推广链接/参数 -->
+    <view class="promo-section" v-if="promo.referrerId">
+      <view class="promo-tip">好友通过以下链接或扫码进入并登录后，将自动绑定为您的下级</view>
+      <view class="promo-row">
+        <text class="promo-label">推荐人ID：</text>
+        <text class="promo-value" selectable>{{ promo.referrerId }}</text>
+        <button class="copy-btn" size="mini" @click="copyReferrerId">复制</button>
+      </view>
+      <view class="promo-row">
+        <text class="promo-label">Scene 参数：</text>
+        <text class="promo-value" selectable>{{ promo.scene }}</text>
+        <button class="copy-btn" size="mini" @click="copyScene">复制</button>
+      </view>
+    </view>
+
+    <!-- 二维码展示区域（占位，真实小程序码需后端调微信接口） -->
     <view class="qrcode-section">
       <view class="qrcode-wrapper">
-        <!-- 使用静态图片作为二维码占位符 -->
         <image src="/static/logo.png" mode="aspectFit" class="qrcode-image"></image>
-        <!-- 二维码中间的logo -->
         <view class="qrcode-center-logo">
           <image src="/static/logo.png" mode="aspectFit" class="center-logo"></image>
         </view>
       </view>
+      <text class="qrcode-hint">小程序码需配置后生成，当前为占位</text>
     </view>
 
-    <!-- 保存图片按钮 -->
     <view class="btn-section">
       <button class="save-btn" @click="saveQRCode">保存图片</button>
     </view>
@@ -39,89 +52,71 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+import api from '@/utils/api.js';
+
 export default {
-  data() {
-    return {
-      // 二维码图片路径
-      qrcodeImagePath: ''
-    }
-  },
-  onLoad() {
-    // 这里可以添加获取用户二维码的逻辑
-    this.fetchQRCode();
-  },
-  methods: {
-    // 返回上一页
-    navigateBack() {
-      uni.navigateBack();
-    },
+  setup() {
+    const qrcodeImagePath = ref('/static/logo.png');
+    const promo = ref({ referrerId: '', scene: '', invitePath: '' });
+
+    const fetchQRCode = async () => {
+      try {
+        const res = await api.distribution.getPromotionInfo();
+        if (res && res.code === 200 && res.data) {
+          promo.value = { referrerId: res.data.referrerId || '', scene: res.data.scene || '', invitePath: res.data.invitePath || '' };
+        }
+      } catch (e) {
+        console.warn('获取推广信息失败', e);
+      }
+    };
+
+    const copyReferrerId = () => {
+      if (promo.value.referrerId) {
+        uni.setClipboardData({ data: promo.value.referrerId, success: () => uni.showToast({ title: '已复制', icon: 'success' }) });
+      }
+    };
+    const copyScene = () => {
+      if (promo.value.scene) {
+        uni.setClipboardData({ data: promo.value.scene, success: () => uni.showToast({ title: '已复制', icon: 'success' }) });
+      }
+    };
+
+    const navigateBack = () => uni.navigateBack();
     
-    // 获取用户的推广二维码
-    fetchQRCode() {
-      // 实际项目中：小程序码的 scene 需带上当前用户ID作为推荐人，如 scene=referrerId_<userId>
-      // 新用户扫码进入后会在 App.vue 登录成功后自动调用 bindReferrer(referrerId)
-      // 当前为占位，步骤7再对接真实生成接口
-      this.qrcodeImagePath = '/static/logo.png'; // 使用占位图
-    },
-    
-    // 保存二维码图片到本地
-    saveQRCode() {
-      // 判断是否是小程序环境
+    const saveQRCode = () => {
       if (uni.getSystemInfoSync().platform === 'devtools') {
-        // 开发工具环境，模拟保存
-        uni.showToast({
-          title: '保存成功',
-          icon: 'success',
-          duration: 2000
-        });
+        uni.showToast({ title: '保存成功', icon: 'success' });
         return;
       }
-      
-      // 实际保存图片的逻辑
       uni.saveImageToPhotosAlbum({
-        filePath: this.qrcodeImagePath,
-        success: () => {
-          uni.showToast({
-            title: '保存成功',
-            icon: 'success',
-            duration: 2000
-          });
-        },
+        filePath: qrcodeImagePath.value,
+        success: () => uni.showToast({ title: '保存成功', icon: 'success' }),
         fail: (err) => {
-          console.error('保存失败', err);
-          uni.showToast({
-            title: '保存失败',
-            icon: 'none',
-            duration: 2000
-          });
-          
-          // 如果是因为用户拒绝授权，可以引导用户打开授权
-          if (err.errMsg.indexOf('auth deny') >= 0) {
-            this.showAuthModal();
-          }
-        }
-      });
-    },
-    
-    // 显示授权提示弹窗
-    showAuthModal() {
-      uni.showModal({
-        title: '提示',
-        content: '需要您授权保存图片权限才能保存二维码',
-        success: (res) => {
-          if (res.confirm) {
-            // 打开设置页面
-            uni.openSetting({
-              success: (settingRes) => {
-                console.log('设置结果', settingRes);
-              }
+          uni.showToast({ title: '保存失败', icon: 'none' });
+          if (err.errMsg && err.errMsg.indexOf('auth deny') >= 0) {
+            uni.showModal({
+              title: '提示',
+              content: '需要您授权保存图片权限才能保存二维码',
+              success: (r) => { if (r.confirm) uni.openSetting({}); }
             });
           }
         }
       });
-    }
+    };
+
+    onMounted(() => fetchQRCode());
+
+    return {
+      qrcodeImagePath,
+      promo,
+      navigateBack,
+      copyReferrerId,
+      copyScene,
+      saveQRCode
+    };
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -202,10 +197,37 @@ export default {
       }
     }
     
-    .user-name {
-      font-size: 16px;
-      color: #333333;
-    }
+  .user-name {
+    font-size: 16px;
+    color: #333333;
+  }
+  }
+
+  .promo-section {
+    padding: 16px;
+    margin: 0 16px;
+    background: #f8f8f8;
+    border-radius: 8px;
+  }
+  .promo-tip {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .promo-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .promo-label { font-size: 13px; color: #333; min-width: 80px; }
+  .promo-value { flex: 1; font-size: 12px; color: #666; word-break: break-all; }
+  .copy-btn { margin-left: 8px; }
+  .qrcode-hint {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
   }
   
   .qrcode-section {
