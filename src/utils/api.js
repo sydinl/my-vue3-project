@@ -276,8 +276,8 @@ const api = {
     // 公开验证优惠券（不需要认证）
     publicValidate: (data) => request('/api/coupons/validate', 'POST', data),
     
-    // 公开获取优惠券列表（不需要认证）
-    publicGetCoupons: (params) => request('/api/coupons/public/list', 'GET', params)
+    // 公开获取可领取优惠券列表（不需要认证）。返回 data 为数组，无 data.list
+    publicGetCoupons: () => request('/api/coupons/public/available', 'GET')
   },
   
   // 支付相关接口

@@ -36,13 +36,24 @@
 
     <!-- 底部结算 -->
     <view class="checkout-bar" v-if="cartItems.length > 0">
-      <view class="total-price">
-        <text>合计：</text>
-        <text class="price">¥{{ totalPrice }}</text>
+      <view class="coupon-row" @click="openCouponSelector">
+        <text class="coupon-label">优惠券</text>
+        <view class="coupon-value">
+          <text v-if="selectedCoupon" class="coupon-selected">{{ selectedCoupon.name }} 省¥{{ selectedCoupon.discountAmount }}</text>
+          <text v-else class="coupon-placeholder">选择优惠券</text>
+          <uni-icons type="right" size="16" class="coupon-arrow"></uni-icons>
+        </view>
       </view>
-      <button class="checkout-btn" :class="{ 'checking-out': isCheckingOut }" @click="checkout" :disabled="isCheckingOut">
+      <view class="total-row">
+        <view class="total-price">
+          <text>合计：</text>
+          <text class="price">¥{{ displayTotal }}</text>
+          <text v-if="selectedCoupon" class="discount-tip">（已优惠¥{{ selectedCoupon.discountAmount }}）</text>
+        </view>
+        <button class="checkout-btn" :class="{ 'checking-out': isCheckingOut }" @click="checkout" :disabled="isCheckingOut">
         {{ isCheckingOut ? '处理中...' : '结算' }}
-      </button>
+        </button>
+      </view>
     </view>
   </view>
 </template>
@@ -50,12 +61,8 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import weChatPayment from '../../utils/payment.js';
+import api from '../../utils/api.js';
 
-// 默认商品图片使用云存储HTTP地址，兼容H5与小程序
-const defaultImg1 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/sheng.jpg';
-const defaultImg2 = 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yue.jpg';
-
-// 购物车存储键名
 const CART_STORAGE_KEY = 'spa_cart_items';
 
 export default {
@@ -93,40 +100,86 @@ export default {
       }
     };
 
-    // 组件挂载时加载购物车数据
     onMounted(() => {
       loadCartItems();
-      
-      // 如果购物车为空，添加一些默认商品
-      if (cartItems.value.length === 0) {
-        cartItems.value = [
-          {
-            id: 1,
-            name: '经典足道',
-            price: 128,
-            originalPrice: 168,
-            quantity: 1,
-            duration: '60分钟',
-            img: defaultImg1
-          },
-          {
-            id: 2,
-            name: '皇室SPA',
-            price: 268,
-            originalPrice: 328,
-            quantity: 1,
-            duration: '90分钟',
-            img: defaultImg2
-          }
-        ];
-        saveCartItems();
-      }
     });
 
-    // 计算总价
     const totalPrice = computed(() => {
       return cartItems.value.reduce((total, item) => total + item.price * item.quantity, 0);
     });
+
+    const availableCoupons = ref([]);
+    const selectedCoupon = ref(null);
+
+    const displayTotal = computed(() => {
+      if (selectedCoupon.value && selectedCoupon.value.finalAmount != null) {
+        return Number(selectedCoupon.value.finalAmount).toFixed(2);
+      }
+      return totalPrice.value.toFixed(2);
+    });
+
+    const getAvailableCoupons = async () => {
+      const orderAmount = totalPrice.value;
+      const projectIds = cartItems.value.map(i => i.id);
+      try {
+        const res = await api.coupons.getAvailable({
+          orderAmount,
+          projectIds: projectIds.length ? projectIds.join(',') : ''
+        });
+        if (res.code === 200 && res.data) availableCoupons.value = Array.isArray(res.data) ? res.data : [];
+        else availableCoupons.value = [];
+      } catch (e) {
+        availableCoupons.value = [];
+      }
+    };
+
+    const openCouponSelector = async () => {
+      await getAvailableCoupons();
+      if (availableCoupons.value.length === 0) {
+        uni.showToast({ title: '暂无可用的优惠券', icon: 'none' });
+        return;
+      }
+      const names = availableCoupons.value.map(c => c.couponName);
+      names.push('不使用优惠券');
+      uni.showActionSheet({
+        itemList: names,
+        success: (res) => {
+          if (res.tapIndex < availableCoupons.value.length) {
+            validateAndSelectCoupon(availableCoupons.value[res.tapIndex]);
+          } else {
+            selectedCoupon.value = null;
+          }
+        }
+      });
+    };
+
+    const validateAndSelectCoupon = async (couponData) => {
+      try {
+        uni.showLoading({ title: '验证中...' });
+        const orderAmount = totalPrice.value;
+        const projectIds = cartItems.value.map(i => i.id);
+        const validateRes = await api.coupons.validate({
+          couponCode: couponData.couponCode,
+          orderAmount,
+          projectIds
+        });
+        uni.hideLoading();
+        if (validateRes.code === 200 && validateRes.data && validateRes.data.valid) {
+          selectedCoupon.value = {
+            name: validateRes.data.couponName,
+            couponCode: couponData.couponCode,
+            discountAmount: validateRes.data.discountAmount,
+            finalAmount: validateRes.data.finalAmount
+          };
+          uni.showToast({ title: '已选优惠券', icon: 'success' });
+        } else {
+          uni.showToast({ title: validateRes.data?.message || '优惠券不可用', icon: 'none' });
+        }
+      } catch (e) {
+        uni.hideLoading();
+        uni.showToast({ title: '验证失败', icon: 'none' });
+      }
+    };
 
     // 增加数量
     const increaseQuantity = (index) => {
@@ -184,7 +237,6 @@ export default {
         isCheckingOut.value = false;
       }, 1000);
       
-      // 构建订单数据
       const orderData = {
         items: cartItems.value.map(item => ({
           projectId: item.id,
@@ -197,6 +249,9 @@ export default {
         paymentMethod: 'wechat',
         source: 'cart'
       };
+      if (selectedCoupon.value && selectedCoupon.value.couponCode) {
+        orderData.couponCode = selectedCoupon.value.couponCode;
+      }
       
       // 发起支付
       console.log('开始发起支付流程...');
@@ -265,10 +320,13 @@ export default {
     return {
       cartItems,
       totalPrice,
+      displayTotal,
+      selectedCoupon,
       isCheckingOut,
       loadCartItems,
       increaseQuantity,
       decreaseQuantity,
+      openCouponSelector,
       checkout,
       backToHome,
       goToProjects
@@ -422,9 +480,30 @@ export default {
   background-color: #fff;
   padding: 20rpx 30rpx;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.coupon-row {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 12rpx;
+}
+
+.coupon-label { font-size: 28rpx; color: #333; }
+.coupon-value { display: flex; align-items: center; font-size: 26rpx; }
+.coupon-selected { color: #4CAF50; margin-right: 8rpx; }
+.coupon-placeholder { color: #999; margin-right: 8rpx; }
+.coupon-arrow { color: #999; }
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .total-price {

@@ -126,12 +126,14 @@ export const PaymentConfig = {
       quantity: Number(item.quantity) || 1,
       duration: item.duration != null ? item.duration : ''
     }));
-    return {
+    const result = {
       items,
       totalAmount: Number(orderData.totalAmount),
       paymentMethod: orderData.paymentMethod || this.methods.WECHAT,
       source: orderData.source || this.sources.CART
     };
+    if (orderData.couponCode) result.couponCode = orderData.couponCode;
+    return result;
   },
   
   // 生成订单号

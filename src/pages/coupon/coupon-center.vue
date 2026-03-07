@@ -3,55 +3,69 @@
     <!-- 状态栏占位 -->
     <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
     
-    <!-- 顶部导航栏 -->
     <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
       <uni-icons type="left" size="24" class="back-icon" @click="navigateBack"></uni-icons>
-      <text class="header-title">我的优惠券</text>
-      <view class="header-right">
-        <uni-icons type="ellipsis" size="20"></uni-icons>
-        <uni-icons type="eye" size="20" class="ml-4"></uni-icons>
-      </view>
+      <text class="header-title">优惠券中心</text>
+      <view class="header-right"></view>
     </view>
 
-    <!-- 优惠券列表 -->
+    <view class="tabs">
+      <view class="tab-item" :class="{ active: currentTab === 'receive' }" @click="switchTab('receive')">可领取</view>
+      <view class="tab-item" :class="{ active: currentTab === 'mine' }" @click="switchTab('mine')">我的未使用</view>
+    </view>
+
     <view class="coupon-list">
       <view v-if="loading" class="loading-state">
         <uni-icons type="spinner-cycle" size="40" class="loading-icon"></uni-icons>
         <text class="loading-text">加载中...</text>
       </view>
-      
-      <view v-else-if="coupons.length === 0" class="empty-state">
+      <view v-else-if="currentTab === 'receive' && receiveList.length === 0" class="empty-state">
         <image src="/static/icons/no-result.png" mode="aspectFit" class="empty-icon"></image>
-        <text class="empty-text">暂无优惠券</text>
+        <text class="empty-text">暂无可领取的优惠券</text>
       </view>
-      
+      <view v-else-if="currentTab === 'mine' && coupons.length === 0" class="empty-state">
+        <image src="/static/icons/no-result.png" mode="aspectFit" class="empty-icon"></image>
+        <text class="empty-text">暂无未使用的优惠券</text>
+      </view>
+      <view v-else-if="currentTab === 'receive'">
+        <view v-for="c in receiveList" :key="c.id" class="coupon-item">
+          <view class="coupon-content">
+            <view class="coupon-left">
+              <view class="discount-info">
+                <text class="discount-value">{{ c.couponType === 'PERCENTAGE' ? c.discountValue + '%' : '¥' + c.discountValue }}</text>
+                <text class="discount-label">{{ c.couponType === 'PERCENTAGE' ? '折扣' : '减免' }}</text>
+              </view>
+            </view>
+            <view class="coupon-right">
+              <view class="coupon-info">
+                <text class="coupon-name">{{ c.couponName }}</text>
+                <text class="coupon-condition">满¥{{ c.minOrderAmount || 0 }}可用</text>
+                <text class="coupon-expire">有效期至：{{ formatDate(c.validUntil) }}</text>
+              </view>
+              <view class="coupon-actions">
+                <button class="use-btn" @click="claimCoupon(c)" :disabled="claimingId === c.id">{{ claimingId === c.id ? '领取中...' : '立即领取' }}</button>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
       <view v-else>
         <view v-for="coupon in coupons" :key="coupon.id" class="coupon-item">
           <view class="coupon-content">
             <view class="coupon-left">
               <view class="discount-info">
-                <text class="discount-value">
-                  {{ coupon.couponType === 'PERCENTAGE' ? coupon.discountValue + '%' : '¥' + coupon.discountValue }}
-                </text>
+                <text class="discount-value">{{ coupon.couponType === 'PERCENTAGE' ? coupon.discountValue + '%' : '¥' + coupon.discountValue }}</text>
                 <text class="discount-label">{{ coupon.couponType === 'PERCENTAGE' ? '折扣' : '减免' }}</text>
               </view>
             </view>
             <view class="coupon-right">
               <view class="coupon-info">
                 <text class="coupon-name">{{ coupon.couponName }}</text>
-                <text class="coupon-desc">{{ coupon.description }}</text>
                 <text class="coupon-condition">满¥{{ coupon.minOrderAmount }}可用</text>
                 <text class="coupon-expire">有效期至：{{ formatDate(coupon.validUntil) }}</text>
               </view>
               <view class="coupon-actions">
-                <button 
-                  class="use-btn" 
-                  :class="{ disabled: !isCouponAvailable(coupon) }"
-                  @click="useCoupon(coupon)"
-                  :disabled="!isCouponAvailable(coupon)"
-                >
-                  {{ getButtonText(coupon) }}
-                </button>
+                <button class="use-btn" :class="{ disabled: !isCouponAvailable(coupon) }" @click="useCoupon(coupon)" :disabled="!isCouponAvailable(coupon)">{{ getButtonText(coupon) }}</button>
               </view>
             </view>
           </view>
@@ -92,41 +106,69 @@ export default {
       });
     };
     
-    // 优惠券数据
     const coupons = ref([]);
+    const receiveList = ref([]);
     const loading = ref(false);
+    const currentTab = ref('receive');
+    const claimingId = ref(null);
 
-    // 导航返回
-    const navigateBack = () => {
-      uni.navigateBack();
+    const navigateBack = () => uni.navigateBack();
+
+    const switchTab = (tab) => {
+      currentTab.value = tab;
+      if (tab === 'receive') loadReceiveList();
+      else getCouponsList();
     };
 
-    // 获取优惠券列表
+    const loadReceiveList = async () => {
+      loading.value = true;
+      try {
+        const res = await api.coupons.publicGetCoupons();
+        if (res.code === 200) receiveList.value = Array.isArray(res.data) ? res.data : [];
+        else receiveList.value = [];
+      } catch (e) {
+        receiveList.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const claimCoupon = async (c) => {
+      const userId = userManager.getUserId();
+      if (!userId) {
+        uni.showToast({ title: '请先登录', icon: 'none' });
+        return;
+      }
+      claimingId.value = c.id;
+      try {
+        const res = await api.coupons.publicClaim({ couponCode: c.couponCode, userId });
+        if (res.code === 200) {
+          uni.showToast({ title: '领取成功' });
+          loadReceiveList();
+          getCouponsList();
+        } else {
+          uni.showToast({ title: res.message || '领取失败', icon: 'none' });
+        }
+      } catch (e) {
+        uni.showToast({ title: '领取失败', icon: 'none' });
+      } finally {
+        claimingId.value = null;
+      }
+    };
+
     const getCouponsList = async () => {
       loading.value = true;
       try {
-        // 使用公开接口获取用户已领取的未使用优惠券列表
         const res = await api.coupons.publicGetUserCoupons({
           userId: userManager.getUserId(),
-          status: 'UNUSED', // 获取未使用的优惠券
+          status: 'UNUSED',
           page: 1,
           size: 20
         });
-        
-        if (res.code === 200) {
-          coupons.value = res.data.list || [];
-        } else {
-          uni.showToast({
-            title: res.message || '获取优惠券失败',
-            icon: 'none'
-          });
-        }
+        if (res.code === 200) coupons.value = res.data?.list || [];
+        else coupons.value = [];
       } catch (error) {
-        console.error('获取优惠券失败:', error);
-        uni.showToast({
-          title: '获取优惠券失败',
-          icon: 'none'
-        });
+        coupons.value = [];
       } finally {
         loading.value = false;
       }
@@ -165,17 +207,21 @@ export default {
       return date.toLocaleDateString('zh-CN');
     };
 
-    // 页面加载时获取数据
     onMounted(() => {
       getSystemInfo();
-      getCouponsList();
+      loadReceiveList();
     });
 
     return {
       statusBarHeight,
       coupons,
+      receiveList,
       loading,
+      currentTab,
+      claimingId,
       navigateBack,
+      switchTab,
+      claimCoupon,
       useCoupon,
       getButtonText,
       isCouponAvailable,
@@ -234,6 +280,25 @@ export default {
 
 .ml-4 {
   margin-left: 32rpx;
+}
+
+.tabs {
+  display: flex;
+  background: #fff;
+  padding: 0 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  color: #666;
+}
+.tab-item.active {
+  color: #4CAF50;
+  font-weight: 600;
+  border-bottom: 4rpx solid #4CAF50;
 }
 
 .coupon-list {
