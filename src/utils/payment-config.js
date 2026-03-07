@@ -117,25 +117,21 @@ export const PaymentConfig = {
     return true;
   },
   
-  // 格式化订单数据
+  // 格式化订单数据，符合后端 CreateOrderRequest：items(projectId, projectName, price, quantity, duration)、totalAmount、paymentMethod、source
   formatOrderData(orderData) {
-    const formatted = {
-      ...orderData,
-      createTime: new Date().toISOString(),
-      orderNo: this.generateOrderNo(),
-      status: this.status.PENDING
-    };
-    
-    // 确保每个项目都有必要字段
-    formatted.items = formatted.items.map(item => ({
-      ...item,
-      itemId: item.itemId || item.projectId,
-      itemName: item.itemName || item.projectName,
-      unitPrice: item.unitPrice || item.price,
-      totalPrice: (item.unitPrice || item.price) * (item.quantity || 1)
+    const items = (orderData.items || []).map(item => ({
+      projectId: String(item.projectId != null ? item.projectId : item.id),
+      projectName: item.projectName != null ? item.projectName : item.name,
+      price: Number(item.price),
+      quantity: Number(item.quantity) || 1,
+      duration: item.duration != null ? item.duration : ''
     }));
-    
-    return formatted;
+    return {
+      items,
+      totalAmount: Number(orderData.totalAmount),
+      paymentMethod: orderData.paymentMethod || this.methods.WECHAT,
+      source: orderData.source || this.sources.CART
+    };
   },
   
   // 生成订单号

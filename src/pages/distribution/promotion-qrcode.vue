@@ -58,8 +58,9 @@ export default {
     
     // 获取用户的推广二维码
     fetchQRCode() {
-      // 实际项目中这里应该调用接口获取用户的二维码图片
-      // 模拟获取成功
+      // 实际项目中：小程序码的 scene 需带上当前用户ID作为推荐人，如 scene=referrerId_<userId>
+      // 新用户扫码进入后会在 App.vue 登录成功后自动调用 bindReferrer(referrerId)
+      // 当前为占位，步骤7再对接真实生成接口
       this.qrcodeImagePath = '/static/logo.png'; // 使用占位图
     },
     

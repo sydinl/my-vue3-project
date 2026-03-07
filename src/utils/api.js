@@ -366,6 +366,9 @@ const api = {
     // 获取分销中心数据
     getData: () => request('/api/distribution/data', 'GET'),
     
+    // 绑定推荐人（二级分销一步：仅未绑定过时有效，需登录后调用）
+    bindReferrer: (referrerId) => request('/api/distribution/bind-referrer', 'POST', { referrerId }),
+    
     // 获取分销订单列表
     getOrders: (params) => request('/api/distribution/orders', 'GET', handlePageParams(params)),
     

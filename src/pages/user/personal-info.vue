@@ -17,25 +17,25 @@
       <!-- ID -->
       <view class="info-item">
         <view class="info-label">ID</view>
-        <view class="info-value">1283323</view>
+        <view class="info-value">{{ userId || '-' }}</view>
       </view>
 
-      <!-- 头像 -->
+      <!-- 头像（微信登录后显示微信头像） -->
       <view class="info-item" @tap="changeAvatar">
         <view class="info-label">头像</view>
         <view class="avatar-container">
           <view class="avatar-icon">
-            <image src="/static/icons/user-avatar.png" mode="aspectFit" class="avatar"></image>
+            <image :src="avatarUrl || '/static/icons/user-avatar.png'" mode="aspectFit" class="avatar"></image>
           </view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>
       </view>
 
-      <!-- 昵称 -->
+      <!-- 昵称（微信登录后显示微信昵称） -->
       <view class="info-item" @tap="editNickname">
         <view class="info-label">昵称</view>
         <view class="info-value-right">
-          <view class="info-value">用户_1283323</view>
+          <view class="info-value">{{ nickname || '未设置' }}</view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>
       </view>
@@ -44,16 +44,16 @@
       <view class="info-item" @tap="editName">
         <view class="info-label">姓名</view>
         <view class="info-value-right">
-          <view class="info-value">请输入姓名</view>
+          <view class="info-value">{{ realName || '请输入姓名' }}</view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>
       </view>
 
-      <!-- 性别 -->
+      <!-- 性别（微信登录后显示微信性别） -->
       <view class="info-item" @tap="selectGender">
         <view class="info-label">性别</view>
         <view class="info-value-right">
-          <view class="info-value">男</view>
+          <view class="info-value">{{ gender || '未设置' }}</view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>
       </view>
@@ -62,7 +62,7 @@
       <view class="info-item" @tap="selectBirthdate">
         <view class="info-label">出生日期</view>
         <view class="info-value-right">
-          <view class="info-value">2025-08-24</view>
+          <view class="info-value">{{ birthdate || '请选择' }}</view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>
       </view>
@@ -75,11 +75,11 @@
         </view>
       </view>
 
-      <!-- 绑定手机号 -->
+      <!-- 绑定手机号（微信不提供手机号，需用户授权获取） -->
       <view class="info-item" @tap="bindPhone">
         <view class="info-label">绑定手机号</view>
         <view class="info-value-right">
-          <view class="info-value">未绑定</view>
+          <view class="info-value">{{ phoneDisplay }}</view>
           <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
         </view>
       </view>
@@ -93,19 +93,55 @@
 </template>
 
 <script>
+  import api from '../../utils/api.js';
+  import wechatLoginManager from '../../utils/wechat-login.js';
+  import userManager from '../../utils/user-manager.js';
+
   export default {
     name: 'PersonalInfo',
     data() {
       return {
-        userId: '1283323',
-        nickname: '用户_1283323',
+        userId: '',
+        nickname: '',
         realName: '',
-        gender: '男',
-        birthdate: '2025-08-24',
+        avatarUrl: '',
+        gender: '',
+        birthdate: '',
         phoneNumber: ''
       }
     },
+    computed: {
+      phoneDisplay() {
+        const p = this.phoneNumber;
+        if (!p || p.trim() === '') return '未绑定';
+        return p;
+      }
+    },
+    onLoad() {
+      this.loadUserInfo();
+    },
+    onShow() {
+      this.loadUserInfo();
+    },
     methods: {
+      async loadUserInfo() {
+        try {
+          const res = await api.user.getInfo();
+          if (res.code === 200 && res.data) {
+            const d = res.data;
+            this.userId = d.userId || '';
+            this.nickname = d.nickname || '';
+            this.realName = d.realName || '';
+            this.avatarUrl = d.avatar || '';
+            this.gender = d.gender || '';
+            this.birthdate = d.birthdate || '';
+            this.phoneNumber = d.phone || '';
+          }
+        } catch (e) {
+          console.error('获取用户信息失败', e);
+          uni.showToast({ title: '获取用户信息失败', icon: 'none' });
+        }
+      },
       // 返回上一页
       goBack() {
         uni.navigateBack();
@@ -175,25 +211,22 @@
       },
       
       // 退出登录
-      logout() {
+      async logout() {
         uni.showModal({
           title: '确认退出',
           content: '确定要退出登录吗？',
-          success: (res) => {
+          success: async (res) => {
             if (res.confirm) {
-              uni.showToast({
-                title: '退出登录成功',
-                icon: 'success',
-                duration: 2000,
-                success: () => {
-                  // 退出登录后可以跳转到登录页面
-                  setTimeout(() => {
-                    uni.navigateTo({
-                      url: '/pages/login/login'
-                    });
-                  }, 1500);
-                }
-              });
+              try {
+                await api.user.logout();
+              } catch (e) {}
+              await wechatLoginManager.logout();
+              userManager.clearUser();
+              uni.removeStorageSync('privacyAgreed');
+              uni.showToast({ title: '已退出登录', icon: 'success' });
+              setTimeout(() => {
+                uni.reLaunch({ url: '/pages/login/login' });
+              }, 500);
             }
           }
         });

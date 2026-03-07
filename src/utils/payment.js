@@ -19,7 +19,7 @@ class WeChatPayment {
   async createOrder(orderData) {
     try {
       const response = await api.orders.create(orderData);
-      if (response.code === 0) {
+      if (response.code === 200 && response.data) {
         return response.data;
       } else {
         throw new Error(response.message || '创建订单失败');
@@ -38,8 +38,13 @@ class WeChatPayment {
   async getPaymentParams(orderId) {
     try {
       const response = await api.payment.getWeChatPayParams({ orderId });
-      if (response.code === 0) {
-        return response.data;
+      if (response.code === 200 && response.data) {
+        const data = response.data;
+        // 微信小程序 wx.requestPayment 需要 package 字段，后端返回的可能是 packageValue
+        if (data.packageValue != null && data.package == null) {
+          data.package = data.packageValue;
+        }
+        return data;
       } else {
         throw new Error(response.message || '获取支付参数失败');
       }
@@ -86,11 +91,13 @@ class WeChatPayment {
    */
   async payInWeChatMiniProgram(paymentData) {
     return new Promise((resolve, reject) => {
+      // 兼容后端返回 packageValue 或 package
+      const packageVal = paymentData.package != null ? paymentData.package : paymentData.packageValue;
       uni.requestPayment({
         provider: 'wxpay',
         timeStamp: paymentData.timeStamp,
         nonceStr: paymentData.nonceStr,
-        package: paymentData.package,
+        package: packageVal,
         signType: paymentData.signType,
         paySign: paymentData.paySign,
         success: (res) => {
@@ -154,7 +161,7 @@ class WeChatPayment {
   async queryPaymentStatus(orderId) {
     try {
       const response = await api.payment.queryStatus({ orderId });
-      if (response.code === 0) {
+      if (response.code === 200 && response.data) {
         return response.data;
       } else {
         throw new Error(response.message || '查询支付状态失败');
