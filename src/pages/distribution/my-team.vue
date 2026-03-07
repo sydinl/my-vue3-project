@@ -1,6 +1,5 @@
 <template>
   <view class="team-container">
-    <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <view class="nav-left" @click="navigateBack">
         <uni-icons type="left" size="24" class="back-icon"></uni-icons>
@@ -9,66 +8,76 @@
       <view class="nav-right"></view>
     </view>
 
-    <!-- 选项卡区域 -->
     <view class="tabs">
-      <view class="tab-item active" @click="switchTab('first')">
-        <text>一级分销名称(0)</text>
+      <view class="tab-item" :class="{ active: currentTab === 'first' }" @click="switchTab('first')">
+        <text>一级 ({{ level1.length }})</text>
+      </view>
+      <view class="tab-item" :class="{ active: currentTab === 'second' }" @click="switchTab('second')">
+        <text>二级 ({{ level2.length }})</text>
       </view>
     </view>
 
-    <!-- 团队成员列表区域 -->
     <view class="team-list">
-      <!-- 空状态显示 -->
-      <view class="empty-state" v-if="!hasMembers">
-        <view class="empty-icon">
-          <text class="user-icon">👤</text>
-        </view>
+      <view v-if="loading" class="empty-state"><text class="empty-text">加载中...</text></view>
+      <view v-else-if="displayList.length === 0" class="empty-state">
+        <view class="empty-icon"><text class="user-icon">👤</text></view>
         <text class="empty-text">暂无相关成员</text>
       </view>
-
-      <!-- 团队成员列表 (当前为空) -->
+      <view v-else class="member-cards">
+        <view v-for="m in displayList" :key="m.id" class="member-card">
+          <image v-if="m.avatar" :src="m.avatar" class="member-avatar" mode="aspectFit"></image>
+          <view v-else class="member-avatar placeholder"><text>👤</text></view>
+          <view class="member-info">
+            <text class="member-name">{{ m.fullName || m.username || '用户' }}</text>
+            <text class="member-phone" v-if="m.phone">{{ m.phone }}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue';
+import api from '@/utils/api.js';
+
 export default {
-  data() {
-    return {
-      currentTab: 'first',
-      hasMembers: false,
-      teamMembers: []
-    }
-  },
-  onLoad() {
-    // 这里可以添加获取团队成员数据的逻辑
-    this.fetchTeamMembers();
-  },
-  methods: {
-    // 返回上一页
-    navigateBack() {
-      uni.navigateBack();
-    },
-    
-    // 切换选项卡
-    switchTab(tab) {
-      this.currentTab = tab;
-      // 根据不同选项卡获取不同的数据
-      this.fetchTeamMembers();
-    },
-    
-    // 获取团队成员数据
-    fetchTeamMembers() {
-      // 实际项目中这里应该调用接口获取数据
-      // 模拟数据加载
-      setTimeout(() => {
-        // 目前设置为暂无数据状态
-        this.hasMembers = false;
-        this.teamMembers = [];
-      }, 300);
-    }
+  name: 'MyTeam',
+  setup() {
+    const loading = ref(false);
+    const currentTab = ref('first');
+    const level1 = ref([]);
+    const level2 = ref([]);
+
+    const displayList = computed(() => currentTab.value === 'first' ? level1.value : level2.value);
+
+    const fetchTeamMembers = async () => {
+      loading.value = true;
+      try {
+        const res = await api.distribution.getTeam();
+        if (res && res.code === 200 && res.data) {
+          level1.value = res.data.level1 || [];
+          level2.value = res.data.level2 || [];
+        } else {
+          level1.value = [];
+          level2.value = [];
+        }
+      } catch (e) {
+        level1.value = [];
+        level2.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const navigateBack = () => uni.navigateBack();
+    const switchTab = (tab) => { currentTab.value = tab; };
+
+    onMounted(() => fetchTeamMembers());
+
+    return { loading, currentTab, level1, level2, displayList, navigateBack, switchTab };
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -182,6 +191,13 @@ export default {
         color: #999999;
       }
     }
+    .member-cards { display: flex; flex-direction: column; gap: 12px; }
+    .member-card { display: flex; align-items: center; padding: 12px; background: #fff; border-radius: 8px; }
+    .member-avatar { width: 44px; height: 44px; border-radius: 50%; margin-right: 12px; }
+    .member-avatar.placeholder { background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .member-info { display: flex; flex-direction: column; }
+    .member-name { font-size: 15px; color: #333; }
+    .member-phone { font-size: 12px; color: #999; margin-top: 4px; }
   }
 }
 </style>

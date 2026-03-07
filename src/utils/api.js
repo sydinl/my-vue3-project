@@ -371,7 +371,8 @@ const api = {
     
     // 获取分销订单列表
     getOrders: (params) => request('/api/distribution/orders', 'GET', handlePageParams(params)),
-    
+    // 我的团队（一级、二级下级）
+    getTeam: () => request('/api/distribution/team', 'GET'),
     // 获取提现记录
     getWithdrawals: (params) => request('/api/distribution/withdrawals', 'GET', handlePageParams(params)),
     
