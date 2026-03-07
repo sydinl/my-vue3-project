@@ -12,32 +12,28 @@
 
     <!-- 提现状态选项卡 -->
     <view class="tabs">
-      <view class="tab-item active" @click="switchTab('all')">全部</view>
-      <view class="tab-item" @click="switchTab('pending')">待审核</view>
-      <view class="tab-item" @click="switchTab('processing')">待打款</view>
-      <view class="tab-item" @click="switchTab('completed')">已打款</view>
-      <view class="tab-item" @click="switchTab('invalid')">无效</view>
+      <view class="tab-item" :class="{ active: currentTab === 'all' }" @click="switchTab('all')">全部</view>
+      <view class="tab-item" :class="{ active: currentTab === 'pending' }" @click="switchTab('pending')">待审核</view>
+      <view class="tab-item" :class="{ active: currentTab === 'completed' }" @click="switchTab('completed')">已打款</view>
     </view>
 
     <!-- 提现明细列表 -->
     <view class="details-list">
-      <view v-if="details.length === 0" class="empty-state">
+      <view v-if="loading" class="empty-state"><text class="empty-text">加载中...</text></view>
+      <view v-else-if="details.length === 0" class="empty-state">
         <image src="/static/icons/empty-data.png" mode="aspectFit" class="empty-icon"></image>
-        <text class="empty-text">暂无数据</text>
+        <text class="empty-text">暂无提现记录</text>
       </view>
-
-      <!-- 提现明细节示例（有数据时显示） -->
-      <view v-for="item in details" :key="item.id" class="detail-item" v-show="details.length > 0">
-        <view class="detail-header">
-          <text class="detail-number">提现编号: {{ item.number }}</text>
-          <text class="detail-status" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</text>
-        </view>
-        <view class="detail-body">
-          <text class="detail-amount">+¥{{ item.amount }}</text>
-          <text class="detail-date">{{ item.date }}</text>
-        </view>
-        <view class="detail-footer">
-          <text class="detail-method">提现方式: {{ item.method }}</text>
+      <view v-else>
+        <view v-for="item in details" :key="item.id" class="detail-item">
+          <view class="detail-header">
+            <text class="detail-number">编号: {{ (item.id || '').slice(0, 8) }}…</text>
+            <text class="detail-status" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</text>
+          </view>
+          <view class="detail-body">
+            <text class="detail-amount">¥{{ formatMoney(item.amount) }}</text>
+            <text class="detail-date">{{ formatTime(item.createTime) }}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -45,66 +41,77 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import api from '@/utils/api.js';
+
+function formatMoney(v) {
+  if (v == null || isNaN(v)) return '0.00';
+  return Number(v).toFixed(2);
+}
+function formatTime(t) {
+  if (!t) return '-';
+  return new Date(t).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
 
 export default {
   name: 'WithdrawDetails',
   setup() {
-    // 提现明细数据（实际项目中可能从API获取）
-    const details = ref([]); // 初始为空数据
+    const details = ref([]);
     const currentTab = ref('all');
+    const loading = ref(false);
+    const page = ref(1);
+    const pageSize = 10;
 
-    // 导航返回
-    const navigateBack = () => {
-      uni.navigateBack();
+    const loadDetails = async () => {
+      loading.value = true;
+      try {
+        const params = { page: page.value, pageSize };
+        if (currentTab.value !== 'all') params.status = currentTab.value;
+        const res = await api.distribution.getWithdrawals(params);
+        if (res && res.code === 200 && res.data) {
+          details.value = res.data.content || [];
+        } else {
+          details.value = [];
+        }
+      } catch (e) {
+        details.value = [];
+      } finally {
+        loading.value = false;
+      }
     };
 
-    // 切换选项卡
+    const navigateBack = () => uni.navigateBack();
+
     const switchTab = (tab) => {
       currentTab.value = tab;
-      // 根据选项卡加载不同状态的提现明细
-      // 这里可以添加API调用逻辑
+      page.value = 1;
+      loadDetails();
     };
 
-    // 获取提现状态文本
     const getStatusText = (status) => {
-      switch(status) {
-        case 'pending':
-          return '待审核';
-        case 'processing':
-          return '待打款';
-        case 'completed':
-          return '已打款';
-        case 'invalid':
-          return '无效';
-        default:
-          return '未知状态';
-      }
+      if (status === 'pending') return '待审核';
+      if (status === 'completed') return '已打款';
+      return status || '未知';
     };
 
-    // 获取提现状态样式
     const getStatusClass = (status) => {
-      switch(status) {
-        case 'pending':
-          return 'pending';
-        case 'processing':
-          return 'processing';
-        case 'completed':
-          return 'completed';
-        case 'invalid':
-          return 'invalid';
-        default:
-          return '';
-      }
+      if (status === 'pending') return 'pending';
+      if (status === 'completed') return 'completed';
+      return '';
     };
+
+    onMounted(() => loadDetails());
 
     return {
       details,
       currentTab,
+      loading,
       navigateBack,
       switchTab,
       getStatusText,
-      getStatusClass
+      getStatusClass,
+      formatMoney,
+      formatTime
     };
   }
 };

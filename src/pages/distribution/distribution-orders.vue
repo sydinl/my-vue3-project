@@ -15,36 +15,41 @@
 
     <!-- 订单状态选项卡 -->
     <view class="tabs">
-      <view class="tab-item active" @click="switchTab('all')">全部</view>
-      <view class="tab-item" @click="switchTab('pending')">待付款</view>
-      <view class="tab-item" @click="switchTab('paid')">已付款</view>
-      <view class="tab-item" @click="switchTab('completed')">已完成</view>
+      <view class="tab-item" :class="{ active: currentTab === 'all' }" @click="switchTab('all')">全部</view>
+      <view class="tab-item" :class="{ active: currentTab === 'pending' }" @click="switchTab('pending')">待结算</view>
+      <view class="tab-item" :class="{ active: currentTab === 'settled' }" @click="switchTab('settled')">已结算</view>
     </view>
 
     <!-- 订单列表 -->
     <view class="order-list">
-      <view v-if="orders.length === 0" class="empty-state">
-        <image src="/static/icons/empty-order.png" mode="aspectFit" class="empty-icon"></image>
-        <text class="empty-text">暂无订单</text>
+      <view v-if="loading" class="empty-state">
+        <text class="empty-text">加载中...</text>
       </view>
-
-      <!-- 订单项示例（有订单时显示） -->
-      <view v-for="order in orders" :key="order.id" class="order-item" v-show="orders.length > 0">
-        <view class="order-header">
-          <text class="order-number">订单号: {{ order.orderNo }}</text>
-          <text class="order-status" :class="getStatusClass(order.status)">{{ getStatusText(order.status) }}</text>
-        </view>
-        <view class="order-body">
-          <image :src="order.productImage" mode="aspectFit" class="product-image"></image>
-          <view class="product-info">
-            <text class="product-name">{{ order.productName }}</text>
-            <text class="product-price">¥{{ order.productPrice }}</text>
-            <text class="product-quantity">x{{ order.quantity }}</text>
+      <view v-else-if="orders.length === 0" class="empty-state">
+        <image src="/static/icons/empty-order.png" mode="aspectFit" class="empty-icon"></image>
+        <text class="empty-text">暂无分销订单</text>
+      </view>
+      <view v-else>
+        <view v-for="order in orders" :key="order.id" class="order-item">
+          <view class="order-header">
+            <text class="order-number">订单ID: {{ order.orderId ? (order.orderId.length > 8 ? order.orderId.slice(0, 8) + '…' : order.orderId) : '-' }}</text>
+            <text class="order-status" :class="getStatusClass(order.status)">{{ getStatusText(order.status) }}</text>
+          </view>
+          <view class="order-body">
+            <view class="product-info product-info-full">
+              <text class="product-name">下单用户: {{ order.customerName || '-' }}</text>
+              <text class="product-price">佣金: ¥{{ formatMoney(order.commission) }}</text>
+              <text class="product-quantity">层级: {{ order.referrerLevel === 1 ? '一级' : '二级' }}</text>
+            </view>
+          </view>
+          <view class="order-footer">
+            <text class="order-time">{{ formatTime(order.createTime) }}</text>
           </view>
         </view>
-        <view class="order-footer">
-          <text class="commission-info">获得佣金: ¥{{ order.commission }}</text>
-          <text class="order-time">{{ order.createTime }}</text>
+        <view v-if="totalPages > 1" class="pagination-row">
+          <button class="page-btn" :disabled="page <= 1" @click="goPage(page - 1)">上一页</button>
+          <text class="page-info">第 {{ page }} / {{ totalPages }} 页</text>
+          <button class="page-btn" :disabled="page >= totalPages" @click="goPage(page + 1)">下一页</button>
         </view>
       </view>
     </view>
@@ -53,92 +58,107 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+import api from '@/utils/api.js';
+
+function formatMoney(v) {
+  if (v == null || isNaN(v)) return '0.00';
+  return Number(v).toFixed(2);
+}
+function formatTime(t) {
+  if (!t) return '-';
+  const d = new Date(t);
+  return d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
 
 export default {
   name: 'DistributionOrders',
   setup() {
-    // 状态栏高度
     const statusBarHeight = ref(0);
     const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
-    
-    // 获取系统信息
+    const orders = ref([]);
+    const currentTab = ref('all');
+    const loading = ref(false);
+    const page = ref(1);
+    const pageSize = 10;
+    const totalPages = ref(0);
+
     const getSystemInfo = () => {
       uni.getSystemInfo({
         success: (res) => {
           statusBarHeight.value = res.statusBarHeight || 0;
-          if (res.safeAreaInsets) {
-            safeAreaInsets.value = res.safeAreaInsets;
-            if (res.safeAreaInsets.top > res.statusBarHeight) {
-              statusBarHeight.value = res.safeAreaInsets.top;
-            }
+          if (res.safeAreaInsets && res.safeAreaInsets.top > res.statusBarHeight) {
+            statusBarHeight.value = res.safeAreaInsets.top;
           }
-          // 针对iPhone X系列设备
-          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
-            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
-          }
-          // 确保最小高度
           statusBarHeight.value = Math.max(statusBarHeight.value, 20);
         }
       });
     };
-    
-    // 订单数据（实际项目中可能从API获取）
-    const orders = ref([]); // 初始为空订单
-    const currentTab = ref('all');
 
-    // 导航返回
-    const navigateBack = () => {
-      uni.navigateBack();
+    const loadOrders = async () => {
+      loading.value = true;
+      try {
+        const params = { page: page.value, pageSize };
+        if (currentTab.value !== 'all') params.status = currentTab.value;
+        const res = await api.distribution.getOrders(params);
+        if (res && res.code === 200 && res.data) {
+          orders.value = res.data.content || [];
+          totalPages.value = res.data.totalPages != null ? res.data.totalPages : 0;
+        } else {
+          orders.value = [];
+        }
+      } catch (e) {
+        console.warn('加载分销订单失败', e);
+        orders.value = [];
+      } finally {
+        loading.value = false;
+      }
     };
 
-    // 切换选项卡
+    const navigateBack = () => uni.navigateBack();
+
     const switchTab = (tab) => {
       currentTab.value = tab;
-      // 根据选项卡加载不同状态的订单
-      // 这里可以添加API调用逻辑
+      page.value = 1;
+      loadOrders();
     };
 
-    // 获取订单状态文本
+    const goPage = (p) => {
+      if (p < 1 || p > totalPages.value) return;
+      page.value = p;
+      loadOrders();
+    };
+
     const getStatusText = (status) => {
-      switch(status) {
-        case 'pending':
-          return '待付款';
-        case 'paid':
-          return '已付款';
-        case 'completed':
-          return '已完成';
-        default:
-          return '未知状态';
-      }
+      if (status === 'pending') return '待结算';
+      if (status === 'settled') return '已结算';
+      return status || '未知';
     };
 
-    // 获取订单状态样式
     const getStatusClass = (status) => {
-      switch(status) {
-        case 'pending':
-          return 'pending';
-        case 'paid':
-          return 'paid';
-        case 'completed':
-          return 'completed';
-        default:
-          return '';
-      }
+      if (status === 'pending') return 'pending';
+      if (status === 'settled') return 'completed';
+      return '';
     };
 
-    // 页面加载时获取系统信息
     onMounted(() => {
       getSystemInfo();
+      loadOrders();
     });
-    
+
     return {
       statusBarHeight,
       orders,
       currentTab,
+      loading,
+      page,
+      totalPages,
       navigateBack,
       switchTab,
+      goPage,
       getStatusText,
-      getStatusClass
+      getStatusClass,
+      formatMoney,
+      formatTime
     };
   }
 };
@@ -331,6 +351,28 @@ export default {
 .product-quantity {
   font-size: 26rpx;
   color: #999999;
+}
+
+.product-info-full {
+  width: 100%;
+}
+
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  padding: 30rpx 0;
+}
+
+.page-btn {
+  font-size: 26rpx;
+  padding: 12rpx 24rpx;
+}
+
+.page-info {
+  font-size: 26rpx;
+  color: #666;
 }
 
 .order-footer {

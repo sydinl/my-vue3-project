@@ -166,19 +166,32 @@ export default {
     };
 
     // 提现功能
-    const withdraw = () => {
+    const withdraw = async () => {
       const avail = distribution.value.availableCommission;
       const num = parseFloat(avail);
       if (isNaN(num) || num <= 0) {
-        uni.showToast({
-          title: '可提现佣金不足',
-          icon: 'none',
-          duration: 2000
-        });
+        uni.showToast({ title: '可提现佣金不足', icon: 'none', duration: 2000 });
         return;
       }
-      // 步骤5再做提现申请页/弹窗
-      uni.showToast({ title: '提现功能即将开放', icon: 'none' });
+      try {
+        const confirmRes = await new Promise((resolve) => {
+          uni.showModal({
+            title: '申请提现',
+            content: '可提现 ¥' + avail + '，确定全部提现？',
+            success: (r) => resolve(r)
+          });
+        });
+        if (!confirmRes.confirm) return;
+        const apiRes = await api.distribution.applyWithdrawal({ amount: num });
+        if (apiRes && apiRes.code === 200) {
+          uni.showToast({ title: '提交成功，请等待审核', icon: 'success' });
+          loadDistributionData();
+        } else {
+          uni.showToast({ title: apiRes?.message || '提交失败', icon: 'none' });
+        }
+      } catch (e) {
+        uni.showToast({ title: '提交失败', icon: 'none' });
+      }
     };
 
     // 查看分销佣金
