@@ -29,7 +29,7 @@
     <!-- 可提现佣金区域 -->
     <view class="commission-section">
       <view class="commission-title">可提现佣金</view>
-      <view class="commission-amount">¥0.00</view>
+      <view class="commission-amount">¥{{ distribution.availableCommission }}</view>
       <button class="withdraw-btn" @click="withdraw">提现</button>
     </view>
 
@@ -37,12 +37,12 @@
     <view class="commission-comparison">
       <view class="comparison-item">
         <view class="comparison-title">已提现佣金</view>
-        <view class="comparison-amount green">¥0.00</view>
+        <view class="comparison-amount green">¥{{ distribution.withdrawnCommission }}</view>
       </view>
       <view class="comparison-divider"></view>
       <view class="comparison-item">
         <view class="comparison-title">未结算佣金</view>
-        <view class="comparison-amount orange">¥0.00</view>
+        <view class="comparison-amount orange">¥{{ distribution.availableCommission }}</view>
       </view>
     </view>
 
@@ -54,28 +54,28 @@
             <image src="/static/icons/money.png" mode="aspectFit"></image>
           </view>
           <view class="feature-text">分销佣金</view>
-          <view class="feature-value">¥0.00</view>
+          <view class="feature-value">¥{{ distribution.totalCommission }}</view>
         </view>
         <view class="feature-item" @click="viewDistributionOrders">
           <view class="feature-icon">
             <image src="/static/icons/order.png" mode="aspectFit"></image>
           </view>
           <view class="feature-text">分销订单</view>
-          <view class="feature-value">0</view>
+          <view class="feature-value">{{ distribution.totalOrderCount }}</view>
         </view>
         <view class="feature-item" @click="viewWithdrawDetails">
           <view class="feature-icon">
             <image src="/static/icons/money1.png" mode="aspectFit"></image>
           </view>
           <view class="feature-text">提现明细</view>
-          <view class="feature-value">¥0.00</view>
+          <view class="feature-value">¥{{ distribution.withdrawnCommission }}</view>
         </view>
         <view class="feature-item" @click="viewMyTeam">
           <view class="feature-icon">
             <image src="/static/icons/member-center.png" mode="aspectFit"></image>
           </view>
           <view class="feature-text">我的团队</view>
-          <view class="feature-value">0人</view>
+          <view class="feature-value">{{ distribution.teamCount }}人</view>
         </view>
         <view class="feature-item" @click="viewPromotionQRCode">
           <view class="feature-icon">
@@ -96,6 +96,12 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+import api from '@/utils/api.js';
+
+function formatMoney(v) {
+  if (v == null || isNaN(v)) return '0.00';
+  return Number(v).toFixed(2);
+}
 
 export default {
   name: 'DistributionCenter',
@@ -103,6 +109,15 @@ export default {
     // 状态栏高度
     const statusBarHeight = ref(0);
     const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    // 分销中心数据（接口返回后填充）
+    const distribution = ref({
+      totalCommission: '0.00',
+      availableCommission: '0.00',
+      withdrawnCommission: '0.00',
+      teamCount: 0,
+      todayOrderCount: 0,
+      totalOrderCount: 0
+    });
     
     // 获取系统信息
     const getSystemInfo = () => {
@@ -130,17 +145,40 @@ export default {
       uni.navigateBack();
     };
 
+    // 加载分销中心数据
+    const loadDistributionData = async () => {
+      try {
+        const res = await api.distribution.getData();
+        if (res && res.code === 200 && res.data) {
+          const d = res.data;
+          distribution.value = {
+            totalCommission: formatMoney(d.totalCommission),
+            availableCommission: formatMoney(d.availableCommission),
+            withdrawnCommission: formatMoney(d.withdrawnCommission != null ? d.withdrawnCommission : 0),
+            teamCount: d.teamCount != null ? d.teamCount : 0,
+            todayOrderCount: d.todayOrderCount != null ? d.todayOrderCount : 0,
+            totalOrderCount: d.totalOrderCount != null ? d.totalOrderCount : 0
+          };
+        }
+      } catch (e) {
+        console.warn('加载分销数据失败', e);
+      }
+    };
+
     // 提现功能
     const withdraw = () => {
-      if (true) { // 这里可以添加提现条件判断
+      const avail = distribution.value.availableCommission;
+      const num = parseFloat(avail);
+      if (isNaN(num) || num <= 0) {
         uni.showToast({
-          title: '余额不足，无法提现',
+          title: '可提现佣金不足',
           icon: 'none',
           duration: 2000
         });
-      } else {
-        // 实现提现逻辑
+        return;
       }
+      // 步骤5再做提现申请页/弹窗
+      uni.showToast({ title: '提现功能即将开放', icon: 'none' });
     };
 
     // 查看分销佣金
@@ -185,13 +223,14 @@ export default {
       });
     };
 
-    // 页面加载时获取系统信息
     onMounted(() => {
       getSystemInfo();
+      loadDistributionData();
     });
-    
+
     return {
       statusBarHeight,
+      distribution,
       navigateBack,
       withdraw,
       viewDistributionCommission,
