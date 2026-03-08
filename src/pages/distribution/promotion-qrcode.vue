@@ -34,15 +34,16 @@
       </view>
     </view>
 
-    <!-- 二维码展示区域（占位，真实小程序码需后端调微信接口） -->
+    <!-- 二维码展示区域 -->
     <view class="qrcode-section">
-      <view class="qrcode-wrapper">
-        <image src="/static/logo.png" mode="aspectFit" class="qrcode-image"></image>
-        <view class="qrcode-center-logo">
+      <view v-if="qrcodeLoading" class="qrcode-loading">生成中...</view>
+      <view v-else class="qrcode-wrapper">
+        <image :src="qrcodeImagePath" mode="aspectFit" class="qrcode-image"></image>
+        <view v-if="qrcodeImagePath && qrcodeImagePath.startsWith('data:')" class="qrcode-center-logo">
           <image src="/static/logo.png" mode="aspectFit" class="center-logo"></image>
         </view>
       </view>
-      <text class="qrcode-hint">小程序码需配置后生成，当前为占位</text>
+      <text class="qrcode-hint">{{ qrcodeError || (qrcodeImagePath && qrcodeImagePath.startsWith('data:') ? '好友扫码进入并登录后自动成为您的下级' : '') }}</text>
     </view>
 
     <view class="btn-section">
@@ -53,11 +54,14 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import api from '@/utils/api.js';
+import api from '../../utils/api.js';
 
 export default {
   setup() {
     const qrcodeImagePath = ref('/static/logo.png');
+    const qrcodeBase64 = ref('');
+    const qrcodeLoading = ref(false);
+    const qrcodeError = ref('');
     const promo = ref({ referrerId: '', scene: '', invitePath: '' });
 
     const fetchQRCode = async () => {
@@ -68,6 +72,28 @@ export default {
         }
       } catch (e) {
         console.warn('获取推广信息失败', e);
+      }
+    };
+
+    const fetchQrcodeImage = async () => {
+      qrcodeLoading.value = true;
+      qrcodeError.value = '';
+      try {
+        const res = await api.distribution.getPromotionQrcodeImage();
+        if (res && res.code === 200 && res.data && res.data.imageBase64) {
+          const b64 = res.data.imageBase64;
+          qrcodeBase64.value = b64;
+          qrcodeImagePath.value = 'data:image/png;base64,' + b64;
+        } else {
+          qrcodeError.value = res && res.message ? res.message : '生成小程序码失败';
+          qrcodeImagePath.value = '/static/logo.png';
+        }
+      } catch (e) {
+        console.warn('获取推广二维码失败', e);
+        qrcodeError.value = '生成失败，请稍后重试';
+        qrcodeImagePath.value = '/static/logo.png';
+      } finally {
+        qrcodeLoading.value = false;
       }
     };
 
@@ -85,30 +111,53 @@ export default {
     const navigateBack = () => uni.navigateBack();
     
     const saveQRCode = () => {
-      if (uni.getSystemInfoSync().platform === 'devtools') {
-        uni.showToast({ title: '保存成功', icon: 'success' });
+      if (!qrcodeBase64.value) {
+        uni.showToast({ title: qrcodeError.value || '请等待二维码生成', icon: 'none' });
         return;
       }
-      uni.saveImageToPhotosAlbum({
-        filePath: qrcodeImagePath.value,
-        success: () => uni.showToast({ title: '保存成功', icon: 'success' }),
-        fail: (err) => {
-          uni.showToast({ title: '保存失败', icon: 'none' });
-          if (err.errMsg && err.errMsg.indexOf('auth deny') >= 0) {
-            uni.showModal({
-              title: '提示',
-              content: '需要您授权保存图片权限才能保存二维码',
-              success: (r) => { if (r.confirm) uni.openSetting({}); }
-            });
-          }
-        }
+      if (typeof uni.getSystemInfoSync === 'function' && uni.getSystemInfoSync().platform === 'devtools') {
+        uni.showToast({ title: '模拟环境已复制到剪贴板', icon: 'none' });
+        return;
+      }
+      const fs = uni.getFileSystemManager();
+      const dir = (typeof uni !== 'undefined' && uni.env && uni.env.USER_DATA_PATH) ? uni.env.USER_DATA_PATH : '';
+      const filePath = (dir ? dir + '/' : '') + 'promo_qrcode_' + Date.now() + '.png';
+      fs.writeFile({
+        filePath,
+        data: qrcodeBase64.value,
+        encoding: 'base64',
+        success: () => {
+          uni.saveImageToPhotosAlbum({
+            filePath,
+            success: () => {
+              uni.showToast({ title: '保存成功', icon: 'success' });
+              try { fs.unlink({ filePath }); } catch (_) {}
+            },
+            fail: (err) => {
+              uni.showToast({ title: '保存失败', icon: 'none' });
+              if (err.errMsg && (err.errMsg.indexOf('auth deny') >= 0 || err.errMsg.indexOf('authorize') >= 0)) {
+                uni.showModal({
+                  title: '提示',
+                  content: '需要您授权保存图片权限才能保存二维码',
+                  success: (r) => { if (r.confirm) uni.openSetting({}); }
+                });
+              }
+            }
+          });
+        },
+        fail: () => uni.showToast({ title: '保存失败', icon: 'none' })
       });
     };
 
-    onMounted(() => fetchQRCode());
+    onMounted(async () => {
+      await fetchQRCode();
+      await fetchQrcodeImage();
+    });
 
     return {
       qrcodeImagePath,
+      qrcodeLoading,
+      qrcodeError,
       promo,
       navigateBack,
       copyReferrerId,
@@ -232,10 +281,21 @@ export default {
   
   .qrcode-section {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     padding: 30px 0;
-    
-    .qrcode-wrapper {
+  }
+  .qrcode-loading {
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+  }
+  .qrcode-section .qrcode-wrapper {
       width: 260px;
       height: 260px;
       background-color: #ffffff;
@@ -267,7 +327,6 @@ export default {
           height: 100%;
         }
       }
-    }
   }
   
   .btn-section {

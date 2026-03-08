@@ -43,9 +43,12 @@ export default {
           return;
         }
         // 登录成功后：若启动时带有推荐人参数，则尝试绑定（仅未绑定过时后端会成功）
-        const referrerId = this._launchReferrerId;
+        let referrerId = this._launchReferrerId;
         if (referrerId) {
           this._launchReferrerId = null;
+          if (referrerId.length === 32 && /^[0-9a-fA-F]+$/.test(referrerId)) {
+            referrerId = referrerId.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+          }
           try {
             const res = await api.distribution.bindReferrer(referrerId);
             if (res && res.code === 200) {
