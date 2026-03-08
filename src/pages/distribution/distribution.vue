@@ -13,13 +13,13 @@
       </view>
     </view>
 
-    <!-- 用户信息区域 -->
+    <!-- 用户信息区域（微信昵称、头像与「我的」页一致） -->
     <view class="user-info-section">
       <view class="user-avatar">
-        <image src="/static/icons/user.png" mode="aspectFit" class="avatar"></image>
+        <image :src="userDisplay.avatar" mode="aspectFit" class="avatar"></image>
       </view>
       <view class="user-details">
-        <view class="user-name">用户_1283323</view>
+        <view class="user-name">{{ userDisplay.name }}</view>
         <view class="user-referrer">推荐人：总店</view>
         <view class="user-level">分销等级：默认等级</view>
       </view>
@@ -97,10 +97,27 @@
 <script>
 import { ref, onMounted } from 'vue';
 import api from '@/utils/api.js';
+import userManager from '@/utils/user-manager.js';
 
 function formatMoney(v) {
   if (v == null || isNaN(v)) return '0.00';
   return Number(v).toFixed(2);
+}
+
+// 与「我的」页统一的展示名：微信昵称优先
+function displayName(data) {
+  if (!data) return '微信用户';
+  const n = data.nickname || data.fullName || data.realName;
+  if (n && String(n).trim()) return String(n).trim();
+  const id = data.userId || data.id;
+  return id ? `用户_${id}` : '微信用户';
+}
+
+// 与「我的」页统一的头像：微信头像优先
+function displayAvatar(data, fallback) {
+  const url = data?.avatar || data?.avatarUrl;
+  if (url && String(url).trim()) return String(url).trim();
+  return fallback || '/static/icons/user.png';
 }
 
 export default {
@@ -109,6 +126,11 @@ export default {
     // 状态栏高度
     const statusBarHeight = ref(0);
     const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
+    // 用户展示信息（微信昵称、头像，与「我的」页一致）
+    const userDisplay = ref({
+      name: '微信用户',
+      avatar: '/static/icons/user.png'
+    });
     // 分销中心数据（接口返回后填充）
     const distribution = ref({
       totalCommission: '0.00',
@@ -118,6 +140,28 @@ export default {
       todayOrderCount: 0,
       totalOrderCount: 0
     });
+
+    // 加载用户展示信息（昵称、头像）
+    const loadUserDisplay = async () => {
+      const currentUser = userManager.getCurrentUser();
+      try {
+        const res = await api.user.getInfo();
+        if (res.code === 200 && res.data) {
+          const d = res.data;
+          userDisplay.value = {
+            name: displayName(d) || displayName(currentUser),
+            avatar: displayAvatar(d, currentUser?.avatarUrl ? currentUser.avatarUrl : '/static/icons/user.png')
+          };
+          return;
+        }
+      } catch (_) {}
+      if (currentUser) {
+        userDisplay.value = {
+          name: displayName(currentUser),
+          avatar: displayAvatar(currentUser)
+        };
+      }
+    };
     
     // 获取系统信息
     const getSystemInfo = () => {
@@ -238,11 +282,13 @@ export default {
 
     onMounted(() => {
       getSystemInfo();
+      loadUserDisplay();
       loadDistributionData();
     });
 
     return {
       statusBarHeight,
+      userDisplay,
       distribution,
       navigateBack,
       withdraw,

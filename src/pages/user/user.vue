@@ -214,35 +214,47 @@ export default {
       cardsCount: 0
     });
 
-    // 加载用户信息
+    // 显示用昵称：优先微信昵称(nickname/fullName)，再兜底
+    const displayName = (data) => {
+      if (!data) return '';
+      const n = data.nickname || data.fullName || data.realName;
+      if (n && String(n).trim()) return String(n).trim();
+      const id = data.userId || data.id;
+      return id ? `用户_${id}` : '微信用户';
+    };
+
+    // 加载用户信息（优先接口，保证显示微信昵称）
     const loadUserInfo = async () => {
       try {
-        // 优先从用户管理器获取用户信息
         const currentUser = userManager.getCurrentUser();
+        // 优先从接口拉取，保证昵称/头像与后端（微信名）一致
+        try {
+          const res = await api.user.getInfo();
+          if (res.code === 200 && res.data) {
+            const d = res.data;
+            userInfo.value = {
+              name: displayName(d) || displayName(currentUser),
+              avatar: d.avatar || currentUser?.avatarUrl || '/static/icons/user.png',
+              favoritesCount: d.favoriteCount ?? d.favoritesCount ?? 0,
+              points: d.points ?? 0,
+              balance: d.balance ?? 0,
+              couponsCount: d.couponCount ?? d.couponsCount ?? 0,
+              cardsCount: d.cardCount ?? d.cardsCount ?? 0
+            };
+            return;
+          }
+        } catch (_) {}
+        // 接口失败时用本地缓存
         if (currentUser) {
           userInfo.value = {
-            name: currentUser.nickname || `用户_${currentUser.userId}`,
-            avatar: currentUser.avatarUrl || '/static/icons/user.png',
+            name: displayName(currentUser),
+            avatar: currentUser.avatarUrl || currentUser.avatar || '/static/icons/user.png',
             favoritesCount: 0,
             points: 0,
             balance: 0,
             couponsCount: 0,
             cardsCount: 0
           };
-        } else {
-          // 如果没有用户信息，尝试从API获取
-          const res = await api.user.getInfo();
-          if (res.code === 200 && res.data) {
-            userInfo.value = {
-              name: res.data.nickname || `用户_${res.data.userId}`,
-              avatar: res.data.avatar || '/static/icons/user.png',
-              favoritesCount: res.data.favoritesCount || 0,
-              points: res.data.points || 0,
-              balance: res.data.balance || 0,
-              couponsCount: res.data.couponsCount || 0,
-              cardsCount: res.data.cardsCount || 0
-            };
-          }
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
