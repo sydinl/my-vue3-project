@@ -19,6 +19,18 @@
         <text class="app-slogan">专业足道按摩服务</text>
       </view>
 
+      <!-- 选填：昵称（微信已回收 getUserProfile，建议此处填写以显示昵称） -->
+      <view class="profile-section">
+        <view class="profile-label">昵称（选填，用于在APP内展示）</view>
+        <input
+          v-model="loginNickname"
+          type="nickname"
+          class="profile-input"
+          placeholder="点击可快速填入微信昵称"
+          placeholder-class="profile-placeholder"
+        />
+      </view>
+
       <!-- 登录按钮区域 -->
       <view class="login-section">
         <button 
@@ -85,6 +97,7 @@ export default {
     const statusBarHeight = ref(0);
     const loginLoading = ref(false);
     const hasAgreed = ref(false);
+    const loginNickname = ref('');
 
     // 获取系统信息
     const getSystemInfo = () => {
@@ -123,8 +136,10 @@ export default {
 
       try {
         loginLoading.value = true;
-        
-        const result = await wechatLoginManager.login();
+        const result = await wechatLoginManager.login({
+          nickname: loginNickname.value || undefined,
+          avatarUrl: undefined
+        });
         
         if (result.success) {
           // 记录用户已同意隐私政策
@@ -192,6 +207,7 @@ export default {
       statusBarHeight,
       loginLoading,
       hasAgreed,
+      loginNickname,
       handleWechatLogin,
       toggleAgreement,
       goUserAgreement,
@@ -281,6 +297,27 @@ export default {
   font-size: 28rpx;
   color: #4CAF50;
   opacity: 0.8;
+}
+
+.profile-section {
+  margin-bottom: 32rpx;
+}
+.profile-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+.profile-input {
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  color: #333;
+  border: 1rpx solid #E8F5E8;
+}
+.profile-placeholder {
+  color: #999;
 }
 
 .login-section {

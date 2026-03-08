@@ -71,23 +71,26 @@ class WechatLoginManager {
 
   /**
    * 微信小程序登录
+   * @param {Object} profileOverride 可选，由页面「头像昵称填写」传入。{ nickname, avatarUrl }
    */
-  async login() {
+  async login(profileOverride = {}) {
     return new Promise((resolve, reject) => {
-      // 检查是否在微信小程序环境
       // #ifdef MP-WEIXIN
       wx.login({
         success: async (res) => {
           if (res.code) {
             try {
-              // 获取用户信息
               const userProfile = await this.getUserProfile();
-              
-              // 调用后端登录接口
+              const nickname = profileOverride.nickname != null && String(profileOverride.nickname).trim()
+                ? String(profileOverride.nickname).trim()
+                : userProfile.nickname;
+              const avatarUrl = profileOverride.avatarUrl != null && String(profileOverride.avatarUrl).trim()
+                ? profileOverride.avatarUrl
+                : userProfile.avatarUrl;
               const loginData = {
                 code: res.code,
-                nickname: userProfile.nickname,
-                avatarUrl: userProfile.avatarUrl,
+                nickname: nickname || null,
+                avatarUrl: avatarUrl || null,
                 gender: userProfile.gender,
                 city: userProfile.city,
                 province: userProfile.province,
@@ -148,25 +151,28 @@ class WechatLoginManager {
       // #endif
       
       // #ifndef MP-WEIXIN
-      // 非微信小程序环境，直接调用后端接口
-      this.callBackendLogin().then(resolve).catch(reject);
+      this.callBackendLogin(profileOverride).then(resolve).catch(reject);
       // #endif
     });
   }
 
   /**
    * 调用后端登录接口（非微信小程序环境）
+   * @param {Object} profileOverride 可选，{ nickname, avatarUrl }
    */
-  async callBackendLogin() {
+  async callBackendLogin(profileOverride = {}) {
     try {
-      // 获取用户信息
       const userProfile = await this.getUserProfile();
-      
-      // 调用后端登录接口
+      const nickname = profileOverride.nickname != null && String(profileOverride.nickname).trim()
+        ? String(profileOverride.nickname).trim()
+        : userProfile.nickname;
+      const avatarUrl = profileOverride.avatarUrl != null && String(profileOverride.avatarUrl).trim()
+        ? profileOverride.avatarUrl
+        : userProfile.avatarUrl;
       const loginData = {
-        code: 'dev_mock_code_' + Date.now(), // 开发环境使用模拟code
-        nickname: userProfile.nickname,
-        avatarUrl: userProfile.avatarUrl,
+        code: 'dev_mock_code_' + Date.now(),
+        nickname: nickname || null,
+        avatarUrl: avatarUrl || null,
         gender: userProfile.gender,
         city: userProfile.city,
         province: userProfile.province,
@@ -238,10 +244,10 @@ class WechatLoginManager {
           });
         },
         fail: (error) => {
-          // 如果用户拒绝授权，使用默认信息
+          // 微信已回收 getUserProfile，此处通常会失败。不传昵称/头像，避免用「微信用户」覆盖后端已有昵称
           resolve({
-            nickname: '微信用户',
-            avatarUrl: '',
+            nickname: null,
+            avatarUrl: null,
             gender: 0,
             city: '',
             province: '',
