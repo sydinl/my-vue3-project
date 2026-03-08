@@ -155,6 +155,8 @@
 <script>
 import { ref, onMounted, computed } from 'vue';
 import api from '../../utils/api';
+import weChatPayment from '../../utils/payment.js';
+import PaymentConfig from '../../utils/payment-config.js';
 
 export default {
   name: 'MyOrders',
@@ -508,23 +510,41 @@ export default {
       });
     };
     
-    // 支付订单
-    const payOrder = (orderId) => {
-      // 这里应该调用支付相关API
-      uni.showLoading({
-        title: '处理中...'
-      });
-      
-      // 模拟支付流程
-      setTimeout(() => {
+    // 支付订单（调起微信支付）
+    const payOrder = async (orderId) => {
+      const order = orders.value.find(o => o.orderId === orderId);
+      if (order && order.paymentMethod === 'balance') {
+        uni.showToast({ title: '余额支付请使用其他入口', icon: 'none' });
+        return;
+      }
+      if (!PaymentConfig.isWeChatPaySupported()) {
+        uni.showToast({ title: '当前环境不支持微信支付', icon: 'none' });
+        return;
+      }
+      try {
+        uni.showLoading({ title: '获取支付参数...', mask: true });
+        const res = await api.payment.getWeChatPayParams({ orderId });
         uni.hideLoading();
-        uni.showToast({
-          title: '支付成功',
-          icon: 'success'
-        });
-        // 支付成功后刷新订单列表
-        loadOrdersByStatus(currentTab.value);
-      }, 1500);
+        if (res.code !== 200 || !res.data) {
+          uni.showToast({ title: res.message || '获取支付参数失败', icon: 'none' });
+          return;
+        }
+        const params = res.data;
+        if (params.packageValue != null && params.package == null) params.package = params.packageValue;
+        uni.showLoading({ title: '调起支付...', mask: true });
+        const payResult = await weChatPayment.pay(params);
+        uni.hideLoading();
+        if (payResult && payResult.success) {
+          uni.showToast({ title: '支付成功', icon: 'success' });
+          loadOrdersByStatus(currentTab.value);
+        } else {
+          uni.showToast({ title: (payResult && payResult.message) || '支付失败', icon: 'none' });
+        }
+      } catch (err) {
+        uni.hideLoading();
+        const msg = err.message || (err.error === 'user_cancel' ? '用户取消支付' : '支付失败');
+        uni.showToast({ title: msg, icon: 'none' });
+      }
     };
     
     // 生成核销码

@@ -127,6 +127,13 @@
 			}
 		},
 		{
+			"path": "pages/orders/order-detail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/orders/after-sale",
 			"style": {
 				"navigationBarTitleText": "售后",
