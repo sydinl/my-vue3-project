@@ -13,6 +13,12 @@
       </view>
     </view>
 
+    <!-- 未绑手机提示：绑定后可发展下级并获取佣金 -->
+    <view v-if="distribution.phoneRequired" class="phone-required-banner">
+      <text class="phone-required-text">绑定手机号后可发展下级并获取佣金</text>
+      <view class="phone-required-btn" @click="goBindPhone">去绑定</view>
+    </view>
+
     <!-- 用户信息区域（微信昵称、头像与「我的」页一致） -->
     <view class="user-info-section">
       <view class="user-avatar">
@@ -138,7 +144,8 @@ export default {
       withdrawnCommission: '0.00',
       teamCount: 0,
       todayOrderCount: 0,
-      totalOrderCount: 0
+      totalOrderCount: 0,
+      phoneRequired: false
     });
 
     // 加载用户展示信息（昵称、头像）
@@ -201,7 +208,8 @@ export default {
             withdrawnCommission: formatMoney(d.withdrawnCommission != null ? d.withdrawnCommission : 0),
             teamCount: d.teamCount != null ? d.teamCount : 0,
             todayOrderCount: d.todayOrderCount != null ? d.todayOrderCount : 0,
-            totalOrderCount: d.totalOrderCount != null ? d.totalOrderCount : 0
+            totalOrderCount: d.totalOrderCount != null ? d.totalOrderCount : 0,
+            phoneRequired: !!d.phoneRequired
           };
         }
       } catch (e) {
@@ -280,6 +288,10 @@ export default {
       });
     };
 
+    const goBindPhone = () => {
+      uni.navigateTo({ url: '/pages/user/edit-phone' });
+    };
+
     onMounted(() => {
       getSystemInfo();
       loadUserDisplay();
@@ -291,6 +303,7 @@ export default {
       userDisplay,
       distribution,
       navigateBack,
+      goBindPhone,
       withdraw,
       viewDistributionCommission,
       viewDistributionOrders,
@@ -353,6 +366,28 @@ export default {
 
 .ml-4 {
   margin-left: 32rpx;
+}
+
+.phone-required-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  margin: 20rpx 30rpx 0;
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+  border-radius: 16rpx;
+  border: 1rpx solid #FFC107;
+}
+.phone-required-text {
+  font-size: 26rpx;
+  color: #795548;
+  flex: 1;
+}
+.phone-required-btn {
+  font-size: 28rpx;
+  color: #2E7D32;
+  font-weight: bold;
+  padding: 12rpx 24rpx;
 }
 
 .user-info-section {

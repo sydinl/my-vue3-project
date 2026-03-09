@@ -11,6 +11,12 @@
       </view>
     </view>
 
+    <!-- 未绑定手机号时提示 -->
+    <view v-if="phoneRequired" class="phone-required-banner">
+      <text class="phone-required-text">绑定手机号后可生成推广码</text>
+      <button class="phone-required-btn" size="mini" @click="goBindPhone">去绑定</button>
+    </view>
+
     <!-- 用户信息区域 -->
     <view class="user-info">
       <view class="user-avatar">
@@ -63,10 +69,15 @@ export default {
     const qrcodeLoading = ref(false);
     const qrcodeError = ref('');
     const promo = ref({ referrerId: '', scene: '', invitePath: '' });
+    const phoneRequired = ref(false);
 
     const fetchQRCode = async () => {
       try {
         const res = await api.distribution.getPromotionInfo();
+        if (res && res.code === 4001) {
+          phoneRequired.value = true;
+          return;
+        }
         if (res && res.code === 200 && res.data) {
           promo.value = { referrerId: res.data.referrerId || '', scene: res.data.scene || '', invitePath: res.data.invitePath || '' };
         }
@@ -76,10 +87,17 @@ export default {
     };
 
     const fetchQrcodeImage = async () => {
+      if (phoneRequired.value) return;
       qrcodeLoading.value = true;
       qrcodeError.value = '';
       try {
         const res = await api.distribution.getPromotionQrcodeImage();
+        if (res && res.code === 4001) {
+          phoneRequired.value = true;
+          qrcodeError.value = res.message || '请先绑定手机号后再生成推广';
+          qrcodeImagePath.value = '/static/logo.png';
+          return;
+        }
         if (res && res.code === 200 && res.data && res.data.imageBase64) {
           const b64 = res.data.imageBase64;
           qrcodeBase64.value = b64;
@@ -95,6 +113,10 @@ export default {
       } finally {
         qrcodeLoading.value = false;
       }
+    };
+
+    const goBindPhone = () => {
+      uni.navigateTo({ url: '/pages/user/edit-phone' });
     };
 
     const copyReferrerId = () => {
@@ -159,10 +181,12 @@ export default {
       qrcodeLoading,
       qrcodeError,
       promo,
+      phoneRequired,
       navigateBack,
       copyReferrerId,
       copyScene,
-      saveQRCode
+      saveQRCode,
+      goBindPhone
     };
   }
 };
@@ -250,6 +274,19 @@ export default {
     font-size: 16px;
     color: #333333;
   }
+  }
+
+  .phone-required-banner {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    background: #fff7e6;
+    border: 1px solid #ffd591;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .phone-required-text { font-size: 14px; color: #d46b08; }
+    .phone-required-btn { background: #ff4e00; color: #fff; border: none; }
   }
 
   .promo-section {

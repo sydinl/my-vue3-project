@@ -42,7 +42,7 @@ export default {
           uni.reLaunch({ url: '/pages/login/login' });
           return;
         }
-        // 登录成功后：若启动时带有推荐人参数，则尝试绑定（仅未绑定过时后端会成功）
+        // 登录成功后：若启动时带有推荐人参数，先看是否已绑手机再决定是否调用绑定
         let referrerId = this._launchReferrerId;
         if (referrerId) {
           this._launchReferrerId = null;
@@ -50,9 +50,22 @@ export default {
             referrerId = referrerId.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
           }
           try {
+            const infoRes = await api.user.getInfo();
+            const hasPhone = infoRes && infoRes.code === 200 && infoRes.data
+              && infoRes.data.phone != null && String(infoRes.data.phone).trim() !== '';
+            if (!hasPhone) {
+              uni.setStorageSync('pendingReferrerId', referrerId);
+              uni.showToast({ title: '绑定手机号后即可成为 Ta 的下级，享受优惠', icon: 'none', duration: 2500 });
+              return;
+            }
             const res = await api.distribution.bindReferrer(referrerId);
             if (res && res.code === 200) {
               console.log('推荐人绑定成功');
+            } else if (res && res.code === 4001) {
+              uni.setStorageSync('pendingReferrerId', referrerId);
+              uni.showToast({ title: res.message || '需先绑定手机号', icon: 'none' });
+            } else if (res && res.message) {
+              uni.showToast({ title: res.message, icon: 'none' });
             }
           } catch (e) {
             console.warn('推荐人绑定请求失败', e);

@@ -202,13 +202,8 @@
         });
       },
       
-      // 绑定手机号
       bindPhone() {
-        uni.showToast({
-          title: '绑定手机号',
-          icon: 'none',
-          duration: 2000
-        });
+        uni.navigateTo({ url: '/pages/user/edit-phone' });
       },
       
       // 退出登录

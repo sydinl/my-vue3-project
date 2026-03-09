@@ -202,6 +202,14 @@
 			}
 		},
 		{
+			"path": "pages/user/edit-phone",
+			"style": {
+				"navigationBarTitleText": "绑定手机号",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
 			"path": "pages/projects/detail",
 			"style": {
 				"navigationBarTitleText": "项目详情",
