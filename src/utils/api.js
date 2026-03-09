@@ -402,7 +402,7 @@ const api = {
           name: 'file',
           success: (res) => {
             if (res.statusCode !== 200) {
-              reject(new Error('上传失败'));
+              reject(new Error('上传失败，状态码 ' + res.statusCode));
               return;
             }
             const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
@@ -413,7 +413,10 @@ const api = {
               reject(new Error(data.message || '上传失败'));
             }
           },
-          fail: (err) => reject(err)
+          fail: (err) => {
+            const msg = (err && err.errMsg) ? err.errMsg : '上传失败';
+            reject(new Error(msg));
+          }
         });
       });
     }
