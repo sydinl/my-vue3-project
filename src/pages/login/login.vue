@@ -19,18 +19,6 @@
         <text class="app-slogan">专业足道按摩服务</text>
       </view>
 
-      <!-- 选填：昵称（微信已回收 getUserProfile，建议此处填写以显示昵称） -->
-      <view class="profile-section">
-        <view class="profile-label">昵称（选填，用于在APP内展示）</view>
-        <input
-          v-model="loginNickname"
-          type="nickname"
-          class="profile-input"
-          placeholder="点击可快速填入微信昵称"
-          placeholder-class="profile-placeholder"
-        />
-      </view>
-
       <!-- 登录按钮区域 -->
       <view class="login-section">
         <button 
@@ -45,6 +33,7 @@
           </text>
         </button>
 
+        <view class="login-hint">登录后可在「我的」-「个人资料」完善昵称和头像</view>
         <!-- 服务协议：用户主动勾选后才能登录 -->
         <view class="agreement-section">
           <view class="agreement-wrapper" @click="toggleAgreement">
@@ -93,11 +82,9 @@ import wechatLoginManager from '../../utils/wechat-login.js';
 export default {
   name: 'LoginPage',
   setup() {
-    // 状态栏高度
     const statusBarHeight = ref(0);
     const loginLoading = ref(false);
     const hasAgreed = ref(false);
-    const loginNickname = ref('');
 
     // 获取系统信息
     const getSystemInfo = () => {
@@ -119,7 +106,6 @@ export default {
       });
     };
 
-    // 切换是否同意协议
     const toggleAgreement = () => {
       hasAgreed.value = !hasAgreed.value;
     };
@@ -136,10 +122,7 @@ export default {
 
       try {
         loginLoading.value = true;
-        const result = await wechatLoginManager.login({
-          nickname: loginNickname.value || undefined,
-          avatarUrl: undefined
-        });
+        const result = await wechatLoginManager.login();
         
         if (result.success) {
           // 记录用户已同意隐私政策
@@ -207,7 +190,6 @@ export default {
       statusBarHeight,
       loginLoading,
       hasAgreed,
-      loginNickname,
       handleWechatLogin,
       toggleAgreement,
       goUserAgreement,
@@ -299,25 +281,11 @@ export default {
   opacity: 0.8;
 }
 
-.profile-section {
-  margin-bottom: 32rpx;
-}
-.profile-label {
-  font-size: 26rpx;
-  color: #666;
-  margin-bottom: 12rpx;
-}
-.profile-input {
-  height: 80rpx;
-  padding: 0 24rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  font-size: 28rpx;
-  color: #333;
-  border: 1rpx solid #E8F5E8;
-}
-.profile-placeholder {
+.login-hint {
+  font-size: 24rpx;
   color: #999;
+  text-align: center;
+  margin-bottom: 24rpx;
 }
 
 .login-section {

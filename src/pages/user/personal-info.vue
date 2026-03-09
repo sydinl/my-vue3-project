@@ -20,15 +20,15 @@
         <view class="info-value">{{ userId || '-' }}</view>
       </view>
 
-      <!-- 头像（微信登录后显示微信头像） -->
-      <view class="info-item" @tap="changeAvatar">
+      <!-- 头像：使用微信「头像昵称填写」能力，点击选择后上传并保存 -->
+      <view class="info-item">
         <view class="info-label">头像</view>
-        <view class="avatar-container">
-          <view class="avatar-icon">
-            <image :src="avatarUrl || '/static/icons/user-avatar.png'" mode="aspectFit" class="avatar"></image>
+        <button class="avatar-choose-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+          <view class="avatar-container">
+            <image :src="avatarUrl || '/static/icons/user-avatar.png'" mode="aspectFill" class="avatar-img"></image>
+            <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
           </view>
-          <uni-icons type="right" size="14" color="#CCCCCC"></uni-icons>
-        </view>
+        </button>
       </view>
 
       <!-- 昵称（微信登录后显示微信昵称） -->
@@ -147,22 +147,23 @@
         uni.navigateBack();
       },
       
-      // 修改头像
-      changeAvatar() {
-        uni.showToast({
-          title: '选择头像',
-          icon: 'none',
-          duration: 2000
-        });
+      async onChooseAvatar(e) {
+        const tempPath = e.detail?.avatarUrl;
+        if (!tempPath) return;
+        try {
+          uni.showLoading({ title: '上传中...' });
+          const url = await api.upload.uploadAvatar(tempPath);
+          await api.user.updateInfo({ avatar: url });
+          this.avatarUrl = url;
+          userManager.setUser({ ...userManager.getCurrentUser(), avatarUrl: url });
+          uni.showToast({ title: '头像已更新', icon: 'success' });
+        } catch (err) {
+          console.error('头像上传失败', err);
+          uni.showToast({ title: err.message || '上传失败', icon: 'none' });
+        }
       },
-      
-      // 编辑昵称
       editNickname() {
-        uni.showToast({
-          title: '编辑昵称',
-          icon: 'none',
-          duration: 2000
-        });
+        uni.navigateTo({ url: '/pages/user/edit-nickname' });
       },
       
       // 编辑姓名
@@ -307,26 +308,28 @@
     align-items: center;
   }
 
-  /* 头像容器 */
+  .avatar-choose-btn {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    background: none;
+    text-align: right;
+    line-height: 1;
+  }
+  .avatar-choose-btn::after {
+    border: none;
+  }
   .avatar-container {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
   }
-
-  .avatar-icon {
-    width: 32px;
-    height: 32px;
+  .avatar-img {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background-color: #F0F0F0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin-right: 8px;
-  }
-
-  .avatar {
-    width: 24px;
-    height: 24px;
+    background-color: #F0F0F0;
   }
 
   /* 退出登录按钮 */

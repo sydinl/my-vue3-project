@@ -184,7 +184,7 @@ const api = {
     getInfo: () => request('/api/user/info', 'GET'),
     
     // 更新用户信息
-    updateInfo: (data) => request('/api/user/update', 'POST', data),
+    updateInfo: (data) => request('/api/user/info', 'PUT', data),
     
     // 退出登录
     logout: () => request('/api/user/logout', 'POST')
@@ -392,6 +392,33 @@ const api = {
     getList: () => request('/api/stores/list', 'GET')
   },
   
+  // 文件上传（登录前可调，用于头像昵称填写）
+  upload: {
+    uploadAvatar: (filePath) => {
+      return new Promise((resolve, reject) => {
+        uni.uploadFile({
+          url: `${API_BASE_URL}/api/upload/avatar`,
+          filePath,
+          name: 'file',
+          success: (res) => {
+            if (res.statusCode !== 200) {
+              reject(new Error('上传失败'));
+              return;
+            }
+            const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+            if (data.code === 200 && data.data && data.data.url) {
+              const u = data.data.url;
+              resolve(u.startsWith('http') ? u : API_BASE_URL + u);
+            } else {
+              reject(new Error(data.message || '上传失败'));
+            }
+          },
+          fail: (err) => reject(err)
+        });
+      });
+    }
+  },
+
   // 会员中心接口
   member: {
     // 获取会员中心信息

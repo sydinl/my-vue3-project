@@ -194,6 +194,14 @@
 			}
 		},
 		{
+			"path": "pages/user/edit-nickname",
+			"style": {
+				"navigationBarTitleText": "编辑昵称",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
 			"path": "pages/projects/detail",
 			"style": {
 				"navigationBarTitleText": "项目详情",
