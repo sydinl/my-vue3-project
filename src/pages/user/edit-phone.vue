@@ -8,6 +8,10 @@
       <view class="nav-right"></view>
     </view>
     <view class="form-section">
+      <button class="wechat-phone-btn" open-type="getPhoneNumber" @getphonenumber="onGetPhoneNumber">
+        微信一键获取手机号
+      </button>
+      <view class="form-tip wechat-tip">推荐使用微信实名手机号，一键授权更安全准确</view>
       <input
         v-model="phone"
         type="number"
@@ -46,6 +50,35 @@ export default {
         }
       } catch (e) {
         console.error(e);
+      }
+    },
+    async onGetPhoneNumber(e) {
+      const detail = e.detail || {};
+      if (detail.errMsg && detail.errMsg.indexOf('fail') !== -1) {
+        uni.showToast({ title: '已取消授权', icon: 'none' });
+        return;
+      }
+      const code = detail.code;
+      if (!code) {
+        uni.showToast({ title: '获取手机号失败', icon: 'none' });
+        return;
+      }
+      this.saving = true;
+      try {
+        const res = await api.wechat.bindPhone({ code });
+        if (!res || res.code !== 200 || !res.data || !res.data.phoneNumber) {
+          uni.showToast({ title: (res && res.message) || '获取手机号失败', icon: 'none' });
+          this.saving = false;
+          return;
+        }
+        const p = res.data.phoneNumber;
+        this.phone = p;
+        // 复用现有保存及绑定推荐人逻辑
+        await this.save();
+      } catch (err) {
+        uni.showToast({ title: err.message || '获取手机号失败', icon: 'none' });
+      } finally {
+        this.saving = false;
       }
     },
     goBack() {
@@ -131,6 +164,16 @@ export default {
   background: #fff;
   margin-top: 12px;
 }
+.wechat-phone-btn {
+  width: 100%;
+  height: 44px;
+  background: #07c160;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
 .phone-input {
   height: 48px;
   padding: 0 16px;
@@ -147,6 +190,9 @@ export default {
   font-size: 12px;
   color: #999;
   margin-bottom: 24px;
+}
+.wechat-tip {
+  margin-bottom: 12px;
 }
 .save-btn {
   width: 100%;

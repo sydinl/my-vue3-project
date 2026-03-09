@@ -78,6 +78,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 import wechatLoginManager from '../../utils/wechat-login.js';
+import api from '../../utils/api.js';
 
 export default {
   name: 'LoginPage',
@@ -132,13 +133,44 @@ export default {
             title: result.isNewUser ? '欢迎新用户！' : '登录成功',
             icon: 'success'
           });
-          
-          // 登录成功后跳转到首页
-          setTimeout(() => {
-            uni.switchTab({
-              url: '/pages/home/home'
+
+          // 查询是否已绑定手机号，已绑定则直接进首页，未绑定再引导弹框
+          let hasPhone = false;
+          try {
+            const userRes = await api.user.getInfo();
+            if (userRes && userRes.code === 200 && userRes.data && userRes.data.phone) {
+              hasPhone = true;
+            }
+          } catch (e) {
+            console.warn('获取用户信息以判断是否已绑手机失败', e);
+          }
+
+          if (hasPhone) {
+            setTimeout(() => {
+              uni.switchTab({
+                url: '/pages/home/home'
+              });
+            }, 500);
+          } else {
+            // 登录成功后引导绑定微信手机号
+            uni.showModal({
+              title: '绑定手机号',
+              content: '为参与分销、防刷和账号安全，建议一键绑定微信实名手机号',
+              confirmText: '去绑定',
+              cancelText: '暂不',
+              success: (res) => {
+                if (res.confirm) {
+                  uni.navigateTo({
+                    url: '/pages/user/edit-phone'
+                  });
+                } else {
+                  uni.switchTab({
+                    url: '/pages/home/home'
+                  });
+                }
+              }
             });
-          }, 1500);
+          }
         }
       } catch (error) {
         console.error('登录失败:', error);

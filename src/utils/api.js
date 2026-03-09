@@ -202,7 +202,10 @@ const api = {
     validateToken: (data) => request('/api/wechat/miniprogram/validate-token', 'POST', data),
     
     // 获取用户信息
-    getUserInfo: () => request('/api/wechat/miniprogram/userinfo', 'GET')
+    getUserInfo: () => request('/api/wechat/miniprogram/userinfo', 'GET'),
+
+    // 绑定微信手机号（wx.getPhoneNumber code）
+    bindPhone: (data) => request('/api/wechat/miniprogram/bind-phone', 'POST', data)
   },
   
   // 订单相关接口
