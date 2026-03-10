@@ -30,6 +30,12 @@
         <view v-else>
           <button class="btn-primary" @click="generateCode" :disabled="generating">{{ generating ? '生成中...' : '生成核销码' }}</button>
         </view>
+        <view v-if="order.verificationCode" class="qrcode-section">
+          <button class="btn-small" @click="loadQrcode" :disabled="qrcodeLoading">
+            {{ qrcodeLoading ? '生成二维码中...' : (qrcodeImage ? '刷新二维码' : '显示二维码') }}
+          </button>
+          <image v-if="qrcodeImage" :src="qrcodeImage" mode="aspectFit" class="verification-qrcode"></image>
+        </view>
       </view>
     </view>
   </view>
@@ -47,6 +53,8 @@ export default {
     const loading = ref(true);
     const error = ref('');
     const generating = ref(false);
+    const qrcodeImage = ref('');
+    const qrcodeLoading = ref(false);
 
     const items = computed(() => {
       if (!order.value || !order.value.items) return [];
@@ -101,6 +109,7 @@ export default {
         if (res.code === 200 && res.data?.verificationCode) {
           order.value = { ...order.value, verificationCode: res.data.verificationCode };
           uni.showToast({ title: '生成成功', icon: 'success' });
+          await loadQrcode();
         } else {
           uni.showToast({ title: res.message || '生成失败', icon: 'none' });
         }
@@ -108,6 +117,23 @@ export default {
         uni.showToast({ title: '生成失败', icon: 'none' });
       } finally {
         generating.value = false;
+      }
+    };
+
+    const loadQrcode = async () => {
+      if (!orderId.value) return;
+      qrcodeLoading.value = true;
+      try {
+        const res = await api.orders.getVerificationQrcode(orderId.value);
+        if (res.code === 200 && res.data && res.data.imageBase64) {
+          qrcodeImage.value = 'data:image/png;base64,' + res.data.imageBase64;
+        } else {
+          uni.showToast({ title: res.message || '生成二维码失败', icon: 'none' });
+        }
+      } catch (e) {
+        uni.showToast({ title: '生成二维码失败', icon: 'none' });
+      } finally {
+        qrcodeLoading.value = false;
       }
     };
 
@@ -130,12 +156,15 @@ export default {
       loading,
       error,
       generating,
+      qrcodeImage,
+      qrcodeLoading,
       items,
       statusText,
       displayAmount,
       formatTime,
       loadDetail,
       generateCode,
+      loadQrcode,
       copyCode,
       goBack
     };
@@ -169,4 +198,6 @@ export default {
 .verification-value { font-family: monospace; font-size: 36rpx; letter-spacing: 4rpx; }
 .btn-small { padding: 8rpx 24rpx; font-size: 24rpx; }
 .btn-primary { margin-top: 16rpx; background: #4CAF50; color: #fff; padding: 24rpx; border-radius: 12rpx; }
+.qrcode-section { margin-top: 16rpx; display: flex; flex-direction: column; align-items: flex-start; gap: 16rpx; }
+.verification-qrcode { width: 260rpx; height: 260rpx; border-radius: 16rpx; background: #fff; }
 </style>

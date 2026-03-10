@@ -238,7 +238,9 @@ const api = {
     generateVerificationCode: (orderId) => request('/api/order/verification/generate', 'POST', { orderId }),
     
     // 获取核销码
-    getVerificationCode: (orderId) => request('/api/order/verification/get', 'GET', { orderId })
+    getVerificationCode: (orderId) => request('/api/order/verification/get', 'GET', { orderId }),
+    // 获取核销码二维码（Base64 PNG）
+    getVerificationQrcode: (orderId) => request('/api/order/verification/qrcode', 'GET', { orderId })
   },
 
   // 优惠券相关接口

@@ -45,9 +45,6 @@
       <view v-if="qrcodeLoading" class="qrcode-loading">生成中...</view>
       <view v-else class="qrcode-wrapper">
         <image :src="qrcodeImagePath" mode="aspectFit" class="qrcode-image"></image>
-        <view v-if="qrcodeImagePath && qrcodeImagePath.startsWith('data:')" class="qrcode-center-logo">
-          <image src="/static/logo.png" mode="aspectFit" class="center-logo"></image>
-        </view>
       </view>
       <text class="qrcode-hint">{{ qrcodeError || (qrcodeImagePath && qrcodeImagePath.startsWith('data:') ? '好友扫码进入并登录后自动成为您的下级' : '') }}</text>
     </view>
