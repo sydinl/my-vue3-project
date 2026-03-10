@@ -1,10 +1,7 @@
 <template>
   <view class="container">
-    <!-- 状态栏占位 -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-    
     <!-- 顶部导航栏 -->
-    <view class="header" :style="{ marginTop: statusBarHeight + 'px' }">
+    <view class="header">
       <text class="header-title">用户中心</text>
       <view class="header-right">
         <uni-icons type="ellipsis" size="20"></uni-icons>
@@ -184,31 +181,6 @@ import userManager from '../../utils/user-manager.js';
 export default {
   name: 'UserCenter',
   setup() {
-    // 状态栏高度
-    const statusBarHeight = ref(0);
-    const safeAreaInsets = ref({ top: 0, bottom: 0, left: 0, right: 0 });
-    
-    // 获取系统信息
-    const getSystemInfo = () => {
-      uni.getSystemInfo({
-        success: (res) => {
-          statusBarHeight.value = res.statusBarHeight || 0;
-          if (res.safeAreaInsets) {
-            safeAreaInsets.value = res.safeAreaInsets;
-            if (res.safeAreaInsets.top > res.statusBarHeight) {
-              statusBarHeight.value = res.safeAreaInsets.top;
-            }
-          }
-          // 针对iPhone X系列设备
-          if (res.model && (res.model.includes('iPhone X') || res.model.includes('iPhone 11') || res.model.includes('iPhone 12') || res.model.includes('iPhone 13') || res.model.includes('iPhone 14') || res.model.includes('iPhone 15'))) {
-            statusBarHeight.value = Math.max(statusBarHeight.value, 44);
-          }
-          // 确保最小高度
-          statusBarHeight.value = Math.max(statusBarHeight.value, 20);
-        }
-      });
-    };
-    
     // 用户信息数据
     const userInfo = ref({
       name: '用户_1283323',
@@ -278,7 +250,6 @@ export default {
 
     // 页面加载时获取用户信息
     onMounted(() => {
-      getSystemInfo();
       loadUserInfo();
     });
 
@@ -522,7 +493,6 @@ export default {
     };
 
     return {
-      statusBarHeight,
       userInfo,
       viewAllOrders,
       viewOrders,
@@ -560,23 +530,11 @@ export default {
   min-height: 100vh;
 }
 
-.status-bar {
-  background-color: #fff;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  padding-top: constant(safe-area-inset-top);
-  padding-top: env(safe-area-inset-top);
-}
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 30rpx;
+  padding: calc(20rpx + env(safe-area-inset-top)) 30rpx 20rpx;
   background-color: #4CAF50;
   position: relative;
   z-index: 9998;
