@@ -164,6 +164,12 @@
           </view>
           <text>门店地址</text>
         </view>
+        <view class="menu-item" v-if="isVerifier" @click="scanAndVerify">
+          <view class="menu-icon">
+            <image src="/static/icons/qrcode.png" mode="aspectFit" class="cart-icon-button"></image>
+          </view>
+          <text>扫码核销</text>
+        </view>
       </view>
     </view>
   </view>
@@ -213,6 +219,7 @@ export default {
       couponsCount: 0,
       cardsCount: 0
     });
+    const isVerifier = ref(false);
 
     // 显示用昵称：优先微信昵称(nickname/fullName)，再兜底
     const displayName = (data) => {
@@ -232,6 +239,8 @@ export default {
           const res = await api.user.getInfo();
           if (res.code === 200 && res.data) {
             const d = res.data;
+            const role = currentUser?.role || d.role;
+            isVerifier.value = !!role && (role === 'ADMIN' || role === 'VERIFIER');
             userInfo.value = {
               name: displayName(d) || displayName(currentUser),
               avatar: d.avatar || currentUser?.avatarUrl || '/static/icons/user.png',
@@ -246,6 +255,8 @@ export default {
         } catch (_) {}
         // 接口失败时用本地缓存
         if (currentUser) {
+          const role = currentUser.role;
+          isVerifier.value = !!role && (role === 'ADMIN' || role === 'VERIFIER');
           userInfo.value = {
             name: displayName(currentUser),
             avatar: currentUser.avatarUrl || currentUser.avatar || '/static/icons/user.png',
@@ -416,6 +427,40 @@ export default {
       });
     };
 
+    // 扫码核销（仅核销员或管理员）
+    const scanAndVerify = () => {
+      if (!isVerifier.value) {
+        uni.showToast({ title: '无权核销', icon: 'none' });
+        return;
+      }
+      uni.scanCode({
+        onlyFromCamera: true,
+        success: async (res) => {
+          const code = res.result;
+          if (!code) {
+            uni.showToast({ title: '未获取到核销码', icon: 'none' });
+            return;
+          }
+          try {
+            uni.showLoading({ title: '核销中...', mask: true });
+            const resp = await api.orders.consumeVerification(code);
+            uni.hideLoading();
+            if (resp.code === 200) {
+              uni.showToast({ title: '核销成功', icon: 'success' });
+            } else {
+              uni.showToast({ title: resp.message || '核销失败', icon: 'none' });
+            }
+          } catch (e) {
+            uni.hideLoading();
+            uni.showToast({ title: '核销失败', icon: 'none' });
+          }
+        },
+        fail: () => {
+          uni.showToast({ title: '扫码取消', icon: 'none' });
+        }
+      });
+    };
+
     // 显示设置菜单
     const showSettings = () => {
       uni.showActionSheet({
@@ -496,6 +541,8 @@ export default {
       inviteFriends,
       goToCouponCenter,
       viewStoreLocations,
+      isVerifier,
+      scanAndVerify,
       showSettings,
       handleLogout,
       communityGroupBuy,
