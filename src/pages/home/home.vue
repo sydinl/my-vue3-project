@@ -290,13 +290,8 @@ export default {
       });
     };
     
-    // 轮播图数据 - 使用云存储HTTP地址，兼容H5与小程序
-    const slides = ref([
-      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250822000722.jpg', text: '' },
-      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250901194736.jpg', text: '' },
-      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250901194745.jpg', text: '' },
-      { img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/wxpic_head_20250822000825.jpg', text: '' }
-    ]);
+    // 轮播图数据（默认留空，由后端接口返回）
+    const slides = ref([]);
     
     // 服务项目数据
     const services = ref([]);
@@ -407,6 +402,22 @@ export default {
       }
     };
     
+    // 获取首页轮播图数据
+    const fetchBanners = async () => {
+      try {
+        const res = await api.banners.getHomeBanners('home');
+        console.log('首页轮播图API响应:', res);
+        if (res.code === 200 && Array.isArray(res.data)) {
+          slides.value = res.data.map(item => ({
+            img: item.imageUrl,
+            text: item.title || ''
+          }));
+        }
+      } catch (error) {
+        console.error('获取首页轮播图失败:', error);
+      }
+    };
+
     // 获取技师列表数据
     const fetchTechnicians = async () => {
       try {
@@ -470,7 +481,8 @@ export default {
         await Promise.all([
           fetchProjects(),
           fetchTechnicians(),
-          fetchReviews()
+          fetchReviews(),
+          fetchBanners()
         ]);
       } catch (error) {
         console.error('加载数据失败:', error);

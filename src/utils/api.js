@@ -190,6 +190,12 @@ const api = {
     logout: () => request('/api/user/logout', 'POST')
   },
   
+  // 轮播图相关接口
+  banners: {
+    // 获取首页轮播图（公开接口）
+    getHomeBanners: (position = 'home') => request('/api/banners', 'GET', { position })
+  },
+  
   // 微信小程序登录相关接口
   wechat: {
     // 微信小程序登录
