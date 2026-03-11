@@ -30,7 +30,7 @@
           </view>
           <view class="qrcode-section">
             <text class="qrcode-hint">请将二维码出示给店员扫码核销</text>
-            <button class="btn-small qrcode-refresh" @click="loadQrcode" :disabled="qrcodeLoading">
+            <button class="btn-small qrcode-refresh" @click="refreshQrcodeDebounced" :disabled="qrcodeLoading || generating">
               {{ qrcodeLoading ? '刷新中...' : (qrcodeImage ? '刷新二维码' : '加载二维码') }}
             </button>
             <image v-if="qrcodeImage" :src="qrcodeImage" mode="aspectFit" class="verification-qrcode"></image>
@@ -45,8 +45,10 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import api from '../../utils/api.js';
+
+const REFRESH_QR_DEBOUNCE_MS = 800;
 
 export default {
   name: 'OrderDetail',
@@ -58,6 +60,7 @@ export default {
     const generating = ref(false);
     const qrcodeImage = ref('');
     const qrcodeLoading = ref(false);
+    let refreshQrTimer = null;
 
     const items = computed(() => {
       if (!order.value || !order.value.items) return [];
@@ -119,7 +122,6 @@ export default {
         const res = await api.orders.generateVerificationCode(orderId.value);
         if (res.code === 200 && res.data?.verificationCode) {
           order.value = { ...order.value, verificationCode: res.data.verificationCode };
-          uni.showToast({ title: '生成成功', icon: 'success' });
           await loadQrcode();
         } else {
           uni.showToast({ title: res.message || '生成失败', icon: 'none' });
@@ -131,13 +133,26 @@ export default {
       }
     };
 
+    // 防抖：短时间多次点击只触发一次刷新，防止恶意重复调用
+    const refreshQrcodeDebounced = () => {
+      if (generating.value || qrcodeLoading.value) return;
+      if (refreshQrTimer) clearTimeout(refreshQrTimer);
+      refreshQrTimer = setTimeout(() => {
+        refreshQrTimer = null;
+        generateCode();
+      }, REFRESH_QR_DEBOUNCE_MS);
+    };
+
     const loadQrcode = async () => {
       if (!orderId.value) return;
       qrcodeLoading.value = true;
       try {
+        // 先清空当前二维码，避免用户误以为没有刷新
+        qrcodeImage.value = '';
         const res = await api.orders.getVerificationQrcode(orderId.value);
         if (res.code === 200 && res.data && res.data.imageBase64) {
           qrcodeImage.value = 'data:image/png;base64,' + res.data.imageBase64;
+          uni.showToast({ title: '二维码已刷新', icon: 'success' });
         } else {
           uni.showToast({ title: res.message || '生成二维码失败', icon: 'none' });
         }
@@ -161,6 +176,10 @@ export default {
       if (orderId.value) loadDetail();
     });
 
+    onUnmounted(() => {
+      if (refreshQrTimer) clearTimeout(refreshQrTimer);
+    });
+
     return {
       orderId,
       order,
@@ -175,6 +194,7 @@ export default {
       formatTime,
       loadDetail,
       generateCode,
+      refreshQrcodeDebounced,
       loadQrcode,
       copyCode,
       goBack
