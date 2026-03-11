@@ -140,7 +140,6 @@
             <view class="order-actions">
               <button class="action-button" @click="viewOrderDetail(order.orderId)">查看详情</button>
               <button class="action-button primary" v-if="order.status === 'pending'" @click="payOrder(order.orderId)">立即支付</button>
-              <button class="action-button success" v-if="order.status === 'paid'" @click="generateVerificationCode(order.orderId)">生成核销码</button>
               <button class="action-button info" v-if="order.status === 'shipping'">服务中</button>
               <button class="action-button danger" v-if="order.status === 'pending'" @click="cancelOrder(order.orderId)">取消订单</button>
             </view>
@@ -546,33 +545,6 @@ export default {
       }
     };
     
-    // 生成核销码
-    const generateVerificationCode = async (orderId) => {
-      try {
-        uni.showLoading({ title: '生成中...' });
-        
-        const res = await api.orders.generateVerificationCode(orderId);
-        
-        if (res.code === 200) {
-          uni.hideLoading();
-          uni.showToast({ title: '核销码生成成功', icon: 'success' });
-          
-          // 更新订单列表中的核销码
-          const orderIndex = orders.value.findIndex(order => order.orderId === orderId);
-          if (orderIndex !== -1) {
-            orders.value[orderIndex].verificationCode = res.data.verificationCode;
-          }
-        } else {
-          uni.hideLoading();
-          uni.showToast({ title: res.message || '生成失败', icon: 'error' });
-        }
-      } catch (error) {
-        uni.hideLoading();
-        uni.showToast({ title: '生成失败', icon: 'error' });
-        console.error('生成核销码失败:', error);
-      }
-    };
-    
     // 复制核销码
     const copyVerificationCode = (verificationCode) => {
       uni.setClipboardData({
@@ -742,7 +714,6 @@ export default {
       getStatusText,
       viewOrderDetail,
       payOrder,
-      generateVerificationCode,
       copyVerificationCode,
       cancelOrder
     };

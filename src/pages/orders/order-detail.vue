@@ -215,6 +215,6 @@ export default {
 .qrcode-section { margin-top: 24rpx; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
 .qrcode-hint { font-size: 24rpx; color: #888; }
 .qrcode-refresh { margin-top: 4rpx; }
-.verification-qrcode { width: 260rpx; height: 260rpx; border-radius: 16rpx; background: #fff; }
+.verification-qrcode { width: 320rpx; height: 320rpx; border-radius: 16rpx; background: #fff; }
 .qrcode-pending { display: block; margin-top: 16rpx; font-size: 26rpx; color: #999; }
 </style>
