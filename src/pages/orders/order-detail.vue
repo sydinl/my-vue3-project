@@ -91,6 +91,10 @@ export default {
         const res = await api.orders.getDetail(orderId.value);
         if (res.code === 200 && res.data) {
           order.value = res.data;
+          // 若订单已支付且已有核销码，则自动加载二维码，方便到店出示扫码
+          if (order.value.status === 'paid' && order.value.verificationCode) {
+            await loadQrcode();
+          }
         } else {
           error.value = res.message || '加载失败';
         }

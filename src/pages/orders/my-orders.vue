@@ -141,7 +141,6 @@
               <button class="action-button" @click="viewOrderDetail(order.orderId)">查看详情</button>
               <button class="action-button primary" v-if="order.status === 'pending'" @click="payOrder(order.orderId)">立即支付</button>
               <button class="action-button success" v-if="order.status === 'paid'" @click="generateVerificationCode(order.orderId)">生成核销码</button>
-              <button class="action-button warning" v-if="order.status === 'paid'" @click="requestService(order.orderId)">申请服务</button>
               <button class="action-button info" v-if="order.status === 'shipping'">服务中</button>
               <button class="action-button danger" v-if="order.status === 'pending'" @click="cancelOrder(order.orderId)">取消订单</button>
             </view>
@@ -745,7 +744,6 @@ export default {
       payOrder,
       generateVerificationCode,
       copyVerificationCode,
-      requestService,
       cancelOrder
     };
   }
