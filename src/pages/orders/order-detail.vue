@@ -175,7 +175,11 @@ export default {
   },
   onLoad(options) {
     const id = (options && (options.id || options.orderId)) || '';
-    if (id && this.orderId) this.orderId.value = id;
+    // 在 uni-app 中，组合式 API 返回的 ref 会在 this 上自动解包成普通值
+    // 因此这里直接赋值 this.orderId 即可
+    if (id && this.orderId != null) {
+      this.orderId = id;
+    }
     if (id && this.loadDetail) this.loadDetail();
   }
 };
