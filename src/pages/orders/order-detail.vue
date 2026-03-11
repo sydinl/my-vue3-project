@@ -23,18 +23,21 @@
       </view>
       <view class="section" v-if="order.status === 'paid'">
         <view class="section-title">核销码</view>
-        <view class="verification-row" v-if="order.verificationCode">
-          <text class="verification-value">{{ order.verificationCode }}</text>
-          <button class="btn-small" @click="copyCode(order.verificationCode)">复制</button>
+        <view v-if="order.verificationCode">
+          <view class="verification-row">
+            <text class="verification-value">{{ order.verificationCode }}</text>
+            <button class="btn-small" @click="copyCode(order.verificationCode)">复制</button>
+          </view>
+          <view class="qrcode-section">
+            <text class="qrcode-hint">请将二维码出示给店员扫码核销</text>
+            <button class="btn-small qrcode-refresh" @click="loadQrcode" :disabled="qrcodeLoading">
+              {{ qrcodeLoading ? '刷新中...' : (qrcodeImage ? '刷新二维码' : '加载二维码') }}
+            </button>
+            <image v-if="qrcodeImage" :src="qrcodeImage" mode="aspectFit" class="verification-qrcode"></image>
+          </view>
         </view>
         <view v-else>
-          <button class="btn-primary" @click="generateCode" :disabled="generating">{{ generating ? '生成中...' : '生成核销码' }}</button>
-        </view>
-        <view v-if="order.verificationCode" class="qrcode-section">
-          <button class="btn-small" @click="loadQrcode" :disabled="qrcodeLoading">
-            {{ qrcodeLoading ? '生成二维码中...' : (qrcodeImage ? '刷新二维码' : '显示二维码') }}
-          </button>
-          <image v-if="qrcodeImage" :src="qrcodeImage" mode="aspectFit" class="verification-qrcode"></image>
+          <text class="qrcode-pending">正在为您生成核销码，请稍后下拉刷新或重新进入本页。</text>
         </view>
       </view>
     </view>
@@ -91,9 +94,13 @@ export default {
         const res = await api.orders.getDetail(orderId.value);
         if (res.code === 200 && res.data) {
           order.value = res.data;
-          // 若订单已支付且已有核销码，则自动加载二维码，方便到店出示扫码
-          if (order.value.status === 'paid' && order.value.verificationCode) {
-            await loadQrcode();
+          // 已支付订单：如无核销码则自动生成，有核销码则直接加载二维码
+          if (order.value.status === 'paid') {
+            if (!order.value.verificationCode) {
+              await generateCode();
+            } else {
+              await loadQrcode();
+            }
           }
         } else {
           error.value = res.message || '加载失败';
@@ -205,7 +212,9 @@ export default {
 .verification-row { display: flex; align-items: center; gap: 20rpx; }
 .verification-value { font-family: monospace; font-size: 36rpx; letter-spacing: 4rpx; }
 .btn-small { padding: 8rpx 24rpx; font-size: 24rpx; }
-.btn-primary { margin-top: 16rpx; background: #4CAF50; color: #fff; padding: 24rpx; border-radius: 12rpx; }
-.qrcode-section { margin-top: 16rpx; display: flex; flex-direction: column; align-items: flex-start; gap: 16rpx; }
+.qrcode-section { margin-top: 24rpx; display: flex; flex-direction: column; align-items: center; gap: 16rpx; }
+.qrcode-hint { font-size: 24rpx; color: #888; }
+.qrcode-refresh { margin-top: 4rpx; }
 .verification-qrcode { width: 260rpx; height: 260rpx; border-radius: 16rpx; background: #fff; }
+.qrcode-pending { display: block; margin-top: 16rpx; font-size: 26rpx; color: #999; }
 </style>
