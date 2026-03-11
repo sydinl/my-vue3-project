@@ -574,6 +574,7 @@ export default {
   height: 40rpx;
   background-color: #FFFFFF;
   border-radius: 100% 100% 0 0;
+  pointer-events: none;
 }
 
 .user-avatar {
