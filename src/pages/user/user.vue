@@ -657,6 +657,7 @@ export default {
 
 .orders-section {
   margin-top: 60rpx;
+  margin-bottom: 10rpx;
   padding: 0 30rpx;
 }
 
@@ -723,7 +724,7 @@ export default {
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 20rpx;
   background-color: #FFFFFF;
-  padding: 30rpx 0;
+  padding: 16rpx 0 30rpx 0;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
