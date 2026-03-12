@@ -248,7 +248,10 @@ const api = {
     // 获取核销码二维码（Base64 PNG）
     getVerificationQrcode: (orderId) => request('/api/order/verification/qrcode', 'GET', { orderId }),
     // 核销订单（通过核销码）
-    consumeVerification: (verificationCode) => request('/api/order/verification/consume', 'POST', { verificationCode })
+    consumeVerification: (verificationCode) => request('/api/order/verification/consume', 'POST', { verificationCode }),
+
+    // 用户申请退款（核销前、未超时）
+    applyRefund: (data) => request('/api/order/refund/apply', 'POST', data)
   },
 
   // 优惠券相关接口
@@ -302,10 +305,7 @@ const api = {
     queryStatus: (orderId) => request('/api/order/payment/status', 'GET', { orderId }),
     
     // 支付回调处理（内部使用）
-    callback: (data) => request('/api/order/payment/callback', 'POST', data),
-    
-    // 申请退款
-    refund: (data) => request('/api/payment/refund', 'POST', data)
+    callback: (data) => request('/api/order/payment/callback', 'POST', data)
   },
   
   // 资产相关接口

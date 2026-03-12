@@ -68,7 +68,15 @@ export default {
     });
 
     const statusText = computed(() => {
-      const map = { pending: '待付款', paid: '已支付', shipping: '服务中', completed: '已完成', aftersale: '售后', cancelled: '已取消' };
+      const map = {
+        pending: '待付款',
+        paid: '已支付',
+        shipping: '服务中',
+        completed: '已完成',
+        aftersale: '售后',
+        cancelled: '已取消',
+        refunded: '已退款'
+      };
       return map[order.value?.status] || order.value?.status || '';
     });
 

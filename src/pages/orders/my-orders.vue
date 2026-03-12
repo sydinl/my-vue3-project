@@ -137,6 +137,13 @@
               <button class="action-button" @click="viewOrderDetail(order.orderId)">查看详情</button>
               <button class="action-button primary" v-if="order.status === 'pending'" @click="payOrder(order.orderId)">立即支付</button>
               <button class="action-button danger" v-if="order.status === 'pending'" @click="cancelOrder(order.orderId)">取消订单</button>
+              <button
+                class="action-button warning"
+                v-if="canApplyRefund(order)"
+                @click="applyRefund(order)"
+              >
+                申请退款
+              </button>
             </view>
           </view>
         </view>
@@ -485,12 +492,12 @@ export default {
     // 获取订单状态文本
     const getStatusText = (status) => {
       const statusMap = {
-        'pending': '待支付',
-        'paid': '已支付',
-        'shipping': '服务中',
-        'completed': '已完成',
-        'cancelled': '已取消',
-        'refunded': '已退款'
+        pending: '待支付',
+        paid: '已支付',
+        shipping: '服务中',
+        completed: '已完成',
+        cancelled: '已取消',
+        refunded: '已退款'
       };
       return statusMap[status] || status;
     };
@@ -628,6 +635,64 @@ export default {
         uni.hideLoading();
       }
     };
+
+    // 是否可以申请退款：已支付/服务中，且未退款中/已退款
+    const canApplyRefund = (order) => {
+      if (!order) return false;
+      const refundableStatus = ['paid', 'shipping'];
+      if (!refundableStatus.includes(order.status)) return false;
+      const rs = (order.refundStatus || '').toUpperCase();
+      if (rs && rs !== 'NONE' && rs !== 'FAIL') return false;
+      return true;
+    };
+
+    // 申请退款（前端常见原因选择，实际规则由后端校验）
+    const applyRefund = (order) => {
+      if (!order || !order.orderId) return;
+
+      const reasons = ['不想要了', '下单信息有误', '计划有变无法到店', '其他原因'];
+      uni.showActionSheet({
+        itemList: reasons,
+        success: (res) => {
+          const reason = reasons[res.tapIndex] || '用户申请退款';
+          uni.showModal({
+            title: '申请退款',
+            content: `确定要为该订单申请退款吗？\n原因：${reason}`,
+            success: async (modalRes) => {
+              if (!modalRes.confirm) return;
+              try {
+                uni.showLoading({ title: '正在提交退款申请...' });
+                const result = await api.orders.applyRefund({
+                  orderId: order.orderId,
+                  reason
+                });
+                uni.hideLoading();
+                if (result.code === 200) {
+                  uni.showToast({
+                    title: '退款申请已提交',
+                    icon: 'success'
+                  });
+                  // 刷新当前标签下订单列表
+                  loadOrdersByStatus(currentTab.value);
+                } else {
+                  uni.showToast({
+                    title: result.message || '退款申请失败',
+                    icon: 'none'
+                  });
+                }
+              } catch (error) {
+                uni.hideLoading();
+                console.error('申请退款失败:', error);
+                uni.showToast({
+                  title: error.message || '申请退款失败',
+                  icon: 'none'
+                });
+              }
+            }
+          });
+        }
+      });
+    };
     
     // 获取项目详情用于创建订单
     const loadProjectDetailForCreate = async (projectId) => {
@@ -710,7 +775,9 @@ export default {
       viewOrderDetail,
       payOrder,
       copyVerificationCode,
-      cancelOrder
+      cancelOrder,
+      canApplyRefund,
+      applyRefund
     };
   }
 };
