@@ -679,6 +679,8 @@ export default {
   align-items: center;
   flex: 1;
   padding: 10rpx 0;
+  /* 调试：高亮点击区域 */
+  border: 1rpx dashed rgba(76, 175, 80, 0.4);
 }
 
 .order-icon {
@@ -717,6 +719,8 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx 0;
+  /* 调试：高亮点击区域 */
+  border: 1rpx dashed rgba(255, 165, 0, 0.4);
 }
 
 .asset-icon {
@@ -762,6 +766,8 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx 0;
+  /* 调试：高亮点击区域 */
+  border: 1rpx dashed rgba(33, 150, 243, 0.4);
 }
 
 .menu-icon {
