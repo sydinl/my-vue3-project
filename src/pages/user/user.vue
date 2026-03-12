@@ -668,7 +668,7 @@ export default {
   display: flex;
   justify-content: space-between;
   background-color: #FFFFFF;
-  padding: 30rpx 0;
+  padding: 20rpx 0 30rpx 0;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
@@ -678,6 +678,7 @@ export default {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  padding: 10rpx 0;
 }
 
 .order-icon {
@@ -715,7 +716,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx;
+  padding: 20rpx 0 30rpx 0;
 }
 
 .asset-icon {
@@ -760,7 +761,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx;
+  padding: 20rpx 0 30rpx 0;
 }
 
 .menu-icon {
