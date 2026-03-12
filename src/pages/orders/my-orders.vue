@@ -97,10 +97,6 @@
           <text class="tab-text">已支付</text>
           <view class="tab-underline" :class="{ active: currentTab === 'paid' }"></view>
         </view>
-        <view class="tab-item" :class="{ active: currentTab === 'shipping' }" @click="switchTab('shipping')">
-          <text class="tab-text">服务中</text>
-          <view class="tab-underline" :class="{ active: currentTab === 'shipping' }"></view>
-        </view>
         <view class="tab-item" :class="{ active: currentTab === 'completed' }" @click="switchTab('completed')">
           <text class="tab-text">已完成</text>
           <view class="tab-underline" :class="{ active: currentTab === 'completed' }"></view>
@@ -140,7 +136,6 @@
             <view class="order-actions">
               <button class="action-button" @click="viewOrderDetail(order.orderId)">查看详情</button>
               <button class="action-button primary" v-if="order.status === 'pending'" @click="payOrder(order.orderId)">立即支付</button>
-              <button class="action-button info" v-if="order.status === 'shipping'">服务中</button>
               <button class="action-button danger" v-if="order.status === 'pending'" @click="cancelOrder(order.orderId)">取消订单</button>
             </view>
           </view>

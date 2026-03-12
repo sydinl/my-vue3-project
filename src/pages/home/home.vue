@@ -1199,7 +1199,7 @@ export default {
 .buy-now-btn {
   flex: 1;
   height: 90rpx;
-  background-color: #66BB6A;
+  background-color: #4CAF50;
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;

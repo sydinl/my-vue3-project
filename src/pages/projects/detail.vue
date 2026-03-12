@@ -666,7 +666,7 @@ export default {
   width: 280rpx;
   height: 80rpx;
   line-height: 80rpx;
-  background-color: #FF5000;
+  background-color: #4CAF50;
   color: #FFFFFF;
   border-radius: 40rpx;
   font-size: 32rpx;
