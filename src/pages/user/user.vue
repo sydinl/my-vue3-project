@@ -192,6 +192,7 @@ export default {
       cardsCount: 0
     });
     const isVerifier = ref(false);
+    const isClearing = ref(false);
 
     // 显示用昵称：优先微信昵称(nickname/fullName)，再兜底
     const displayName = (data) => {
@@ -307,13 +308,26 @@ export default {
       });
     };
 
-    // 清除缓存
-    const clearCache = () => {
-      uni.showToast({
-        title: '清除缓存',
-        icon: 'none',
-        duration: 2000
-      });
+    // 清除缓存：仅清除用户信息缓存（保留登录态），然后刷新「我的」页
+    const clearCache = async () => {
+      if (isClearing.value) {
+        uni.showToast({ title: '正在清理，请稍候', icon: 'none' });
+        return;
+      }
+      isClearing.value = true;
+      uni.showLoading({ title: '正在清理...', mask: true });
+      try {
+        userManager.currentUser = null;
+        uni.removeStorageSync('userInfo');
+        uni.removeStorageSync('pendingReferrerId');
+        uni.hideLoading();
+        uni.reLaunch({ url: '/pages/user/user' });
+      } catch (e) {
+        uni.hideLoading();
+        uni.showToast({ title: '清除失败', icon: 'none' });
+      } finally {
+        isClearing.value = false;
+      }
     };
 
     // 前往会员中心
