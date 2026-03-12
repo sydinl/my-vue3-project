@@ -166,19 +166,10 @@
       </view>
       
       <view class="sheet-body">
-        <!-- 时长选择 -->
+        <!-- 商品详情 -->
         <view class="option-section">
-          <text class="option-title">时长</text>
-          <view class="duration-options">
-            <view 
-              v-for="duration in durations" 
-              :key="duration"
-              :class="['duration-option', {active: selectedDuration === duration}]"
-              @click="selectDuration(duration)"
-            >
-              {{duration}}
-            </view>
-          </view>
+          <text class="option-title">商品详情</text>
+          <text class="detail-link" @click="goToProductDetail">查看详情</text>
         </view>
         
         <!-- 数量选择 -->
@@ -510,6 +501,18 @@ export default {
       durations: ['60分钟', '90分钟', '100分钟', '120分钟'],
       defaultDurationIndex: 2 // 默认选中第3个选项（索引为2）即'100分钟'
     });
+
+    // 弹窗内跳转商品详情
+    const goToProductDetail = () => {
+      if (selectedItem.value && selectedItem.value.id) {
+        closeBottomSheet();
+        uni.navigateTo({
+          url: `/pages/projects/detail?id=${selectedItem.value.id}`
+        });
+      } else {
+        uni.showToast({ title: '暂无商品详情', icon: 'none' });
+      }
+    };
     
     // 页面加载时获取数据
     onMounted(() => {
@@ -542,6 +545,7 @@ export default {
       selectDuration,
       increaseQuantity,
       decreaseQuantity,
+      goToProductDetail,
       confirmAddToCart,
       buyNow,
       viewMorePackages,
@@ -1130,6 +1134,11 @@ export default {
   color: #333;
   margin-bottom: 20rpx;
   display: block;
+}
+
+.detail-link {
+  font-size: 28rpx;
+  color: #1989fa;
 }
 
 .duration-options {
