@@ -19,7 +19,7 @@
         <image :src="createOrderData.image || '/static/icons/projects.png'" class="project-image"></image>
         <view class="project-details">
           <text class="project-name">{{ createOrderData.projectName || '加载中...' }}</text>
-          <text class="project-duration">{{ createOrderData.duration || '' }}</text>
+          <text class="project-detail-label" @click="goToProjectDetail">商品详情</text>
         </view>
       </view>
       <view class="form-item">
@@ -330,6 +330,18 @@ export default {
     // 关闭创建表单
     const closeCreateForm = () => {
       showCreateForm.value = false;
+    };
+
+    // 跳转商品详情
+    const goToProjectDetail = () => {
+      const id = createOrderData.value.projectId;
+      if (id) {
+        uni.navigateTo({
+          url: `/pages/projects/detail?id=${id}`
+        });
+      } else {
+        uni.showToast({ title: '暂无商品详情', icon: 'none' });
+      }
     };
     
     // 选择支付方式
@@ -764,6 +776,7 @@ export default {
       switchTab,
       handleCreateOrder,
       closeCreateForm,
+      goToProjectDetail,
       selectPaymentMethod,
       increaseQuantity,
       decreaseQuantity,
@@ -896,9 +909,9 @@ export default {
   font-weight: bold;
 }
 
-.project-duration {
+.project-detail-label {
   font-size: 26rpx;
-  color: #666666;
+  color: #1989fa;
 }
 
 /* 数量选择器样式 */
