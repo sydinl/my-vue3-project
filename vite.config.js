@@ -25,6 +25,7 @@ export default defineConfig({
   server: {
     // 允许跨域
     cors: true,
+    port: 3000,
     // 配置静态资源处理
     static: {
       // 指定静态资源目录
