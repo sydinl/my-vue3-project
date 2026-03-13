@@ -42,6 +42,7 @@ export function useAddToCart(options = {}) {
    * 关闭底部弹出框
    */
   const closeBottomSheet = () => {
+    console.log('[useAddToCart] closeBottomSheet called, current item =', selectedItem.value, 'quantity =', quantity.value);
     showBottomSheet.value = false;
   };
 
