@@ -231,14 +231,14 @@ const api = {
     // 按状态获取订单列表
     getListByStatus: (params) => request('/api/order/listByStatus', 'GET', handlePageParams(params)),
     
-    // 更新订单状态
-    updateStatus: (orderId, status) => request('/api/order/status', 'PUT', { orderId, status }),
+    // 更新订单状态（使用查询参数传递，兼容后端 @RequestParam）
+    updateStatus: (orderId, status) => request(`/api/order/status?orderId=${orderId}&status=${status}`, 'PUT', {}),
     
     // 取消订单
-    cancel: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'cancelled' }),
+    cancel: (orderId) => request(`/api/order/status?orderId=${orderId}&status=cancelled`, 'PUT', {}),
     
     // 确认收货
-    confirm: (orderId) => request('/api/order/status', 'PUT', { orderId, status: 'completed' }),
+    confirm: (orderId) => request(`/api/order/status?orderId=${orderId}&status=completed`, 'PUT', {}),
     
     // 生成核销码
     generateVerificationCode: (orderId) => request('/api/order/verification/generate', 'POST', { orderId }),
