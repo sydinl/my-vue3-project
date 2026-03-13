@@ -801,4 +801,10 @@ export default {
   color: #333333;
   text-align: center;
 }
+
+.cart-icon-button {
+  width: 40rpx;
+  height: 40rpx;
+  display: block;
+}
 </style>
