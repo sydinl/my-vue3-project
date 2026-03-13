@@ -153,7 +153,7 @@
   <!-- 底部弹出框 -->
   <view v-if="showBottomSheet" class="bottom-sheet" @click.self="closeBottomSheet">
     <view class="sheet-overlay" @click="closeBottomSheet"></view>
-    <view class="sheet-content">
+    <view class="sheet-content" @click.stop>
       <view class="sheet-header">
         <image v-if="selectedItem" :src="selectedItem.img" class="selected-image"></image>
         <view v-if="selectedItem" class="selected-info">

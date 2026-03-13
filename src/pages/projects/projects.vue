@@ -62,9 +62,9 @@
     </template>
 
     <!-- 底部弹出框 -->
-    <view class="bottom-sheet" v-if="showBottomSheet">
+    <view class="bottom-sheet" v-if="showBottomSheet" @click.self="closeBottomSheet">
       <view class="sheet-overlay" @click="closeBottomSheet"></view>
-      <view class="sheet-content">
+      <view class="sheet-content" @click.stop>
         <view class="sheet-header">
           <image :src="selectedProject.img" mode="aspectFill" class="selected-image"></image>
           <view class="selected-info">
