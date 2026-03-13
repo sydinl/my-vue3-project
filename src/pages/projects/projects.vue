@@ -77,10 +77,12 @@
         </view>
         
         <view class="sheet-body">
-          <!-- 商品详情 -->
+          <!-- 商品详情：直接展示当前项目描述 -->
           <view class="option-section">
             <text class="option-title">商品详情</text>
-            <text class="detail-link" @click="goToProductDetail">查看详情</text>
+            <text class="detail-link">
+              {{ selectedProject && selectedProject.desc ? selectedProject.desc : '暂无商品详情' }}
+            </text>
           </view>
           
           <!-- 数量选择 -->

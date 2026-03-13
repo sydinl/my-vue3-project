@@ -166,21 +166,23 @@
       </view>
       
       <view class="sheet-body">
-        <!-- 商品详情 -->
+        <!-- 商品详情：直接展示当前项目描述 -->
         <view class="option-section">
           <text class="option-title">商品详情</text>
-          <text class="detail-link" @click="goToProductDetail">查看详情</text>
+          <text class="detail-link">
+            {{ selectedItem && selectedItem.desc ? selectedItem.desc : '暂无商品详情' }}
+          </text>
         </view>
         
         <!-- 数量选择 -->
         <view class="option-section">
-        <text class="option-title">数量</text>
-        <view class="quantity-selector">
-          <button class="quantity-btn" @click="decreaseQuantity">-</button>
-          <text class="quantity">{{quantity}}</text>
-          <button class="quantity-btn" @click="increaseQuantity">+</button>
+          <text class="option-title">数量</text>
+          <view class="quantity-selector">
+            <button class="quantity-btn" @click="decreaseQuantity">-</button>
+            <text class="quantity">{{quantity}}</text>
+            <button class="quantity-btn" @click="increaseQuantity">+</button>
+          </view>
         </view>
-      </view>
       </view>
       
       <view class="sheet-footer">
