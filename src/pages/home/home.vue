@@ -170,7 +170,7 @@
         <view class="option-section">
           <text class="option-title">商品详情</text>
           <text class="detail-link">
-            {{ selectedItem && selectedItem.desc ? selectedItem.desc : '暂无商品详情' }}
+            {{ (selectedItem && (selectedItem.details || selectedItem.desc)) || '暂无商品详情' }}
           </text>
         </view>
         
@@ -347,6 +347,7 @@ export default {
             id: project.id,
             name: project.name,
             desc: project.description || '暂无描述',
+            details: project.details ?? project.description ?? '暂无描述',
             price: project.price,
             img: project.image || '/static/icons/placeholder.png'
           }));
@@ -355,10 +356,10 @@ export default {
           console.log('热门项目API返回数据格式不正确，使用模拟数据');
           // API返回成功但数据格式不正确，使用模拟数据
           services.value = [
-            { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang_202508220008253.jpg' },
-            { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' },
-            { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg' },
-            { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' }
+            { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', details: '90分钟+精致自助餐', price: 258, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang_202508220008253.jpg' },
+            { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', details: '90分钟+精致自助餐', price: 388, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' },
+            { id: 3, name: '水足道', desc: '70分钟+精致自助餐', details: '70分钟+精致自助餐', price: 288, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg' },
+            { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', details: '120分钟+精致自助餐', price: 858, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' }
           ];
         }
         
@@ -370,6 +371,7 @@ export default {
             name: project.name,
             price: project.price,
             duration: project.duration || '60分钟',
+            details: project.details ?? project.description ?? '暂无描述',
             img: project.imageUrl || '/static/icons/placeholder.png'
           }));
         } else {
@@ -383,10 +385,10 @@ export default {
         console.error('获取项目数据失败:', error);
         // 使用模拟数据作为备用
         services.value = [
-          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', price: 258, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang.jpg' },
-          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', price: 388, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yue.jpg' },
-          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', price: 288, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg' },
-          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', price: 858, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' }
+          { id: 1, name: '唐足道', desc: '90分钟+精致自助餐', details: '90分钟+精致自助餐', price: 258, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/tang.jpg' },
+          { id: 2, name: '悦SPA', desc: '90分钟+精致自助餐', details: '90分钟+精致自助餐', price: 388, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yue.jpg' },
+          { id: 3, name: '水足道', desc: '70分钟+精致自助餐', details: '70分钟+精致自助餐', price: 288, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/shui.jpg' },
+          { id: 4, name: '韵SPA', desc: '120分钟+精致自助餐', details: '120分钟+精致自助餐', price: 858, img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/yun.jpg' }
         ];
         packages.value = [
           { id: 1, name: '盛足道', price: 178, duration: '70分钟', img: 'https://656e-env-9gycuegx97788a6b-1408307141.tcb.qcloud.la/items/sheng.jpg' },

@@ -81,7 +81,7 @@
           <view class="option-section">
             <text class="option-title">商品详情</text>
             <text class="detail-link">
-              {{ selectedProject && selectedProject.desc ? selectedProject.desc : '暂无商品详情' }}
+              {{ (selectedProject && (selectedProject.details || selectedProject.desc)) || '暂无商品详情' }}
             </text>
           </view>
           
@@ -173,6 +173,7 @@ export default {
             id: project.id,
             name: project.name,
             desc: project.description || '暂无描述',
+            details: project.details ?? project.description ?? '暂无描述',
             price: project.price,
             category: project.categoryId || 'other',
             img: project.image || '/static/icons/placeholder.png'
