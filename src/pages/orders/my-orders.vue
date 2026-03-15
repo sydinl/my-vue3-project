@@ -572,44 +572,6 @@ export default {
       });
     };
 
-    // 申请服务
-    const requestService = async (orderId) => {
-      try {
-        uni.showModal({
-          title: '申请服务',
-          content: '确定要申请开始服务吗？',
-          success: async (res) => {
-            if (res.confirm) {
-              uni.showLoading({ title: '处理中...' });
-              
-              const result = await api.orders.updateStatus(orderId, 'shipping');
-              if (result.code === 200) {
-                uni.showToast({
-                  title: '服务申请成功',
-                  icon: 'success'
-                });
-                // 刷新订单列表
-                loadOrders();
-              } else {
-                uni.showToast({
-                  title: result.message || '申请失败',
-                  icon: 'error'
-                });
-              }
-            }
-          }
-        });
-      } catch (error) {
-        console.error('申请服务失败:', error);
-        uni.showToast({
-          title: '申请失败',
-          icon: 'error'
-        });
-      } finally {
-        uni.hideLoading();
-      }
-    };
-
     // 取消订单
     const cancelOrder = async (orderId) => {
       try {
@@ -648,10 +610,10 @@ export default {
       }
     };
 
-    // 是否可以申请退款：已支付/服务中，且未退款中/已退款
+    // 是否可以申请退款：仅已支付，且未退款中/已退款
     const canApplyRefund = (order) => {
       if (!order) return false;
-      const refundableStatus = ['paid', 'shipping'];
+      const refundableStatus = ['paid'];
       if (!refundableStatus.includes(order.status)) return false;
       const rs = (order.refundStatus || '').toUpperCase();
       if (rs && rs !== 'NONE' && rs !== 'FAIL') return false;
