@@ -82,7 +82,7 @@
     <view class="reviews-section">
       <view class="section-header">
         <text class="section-title">用户评价</text>
-        <text class="more-link" @click="viewAllReviews">查看全部 &gt;</text>
+        <text class="more-link" decode="true" @click="viewAllReviews">查看全部 &gt;</text>
       </view>
       <view class="review-list" v-if="reviews.length > 0">
         <view v-for="review in reviews" :key="review.reviewId" class="review-item">

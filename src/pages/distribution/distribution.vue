@@ -27,9 +27,11 @@
       <view class="user-details">
         <view class="user-name">{{ userDisplay.name }}</view>
         <view class="user-referrer">推荐人：总店</view>
-        <view class="user-level">分销等级：默认等级</view>
+      <view class="user-level">分销等级：默认等级</view>
       </view>
-      <view class="upgrade-btn">升级条件 &gt;</view>
+      <view class="upgrade-btn">
+        <text decode="true">升级条件 &gt;</text>
+      </view>
     </view>
 
     <!-- 可提现佣金区域 -->
