@@ -29,8 +29,9 @@
         <view class="user-referrer">推荐人：总店</view>
       <view class="user-level">分销等级：默认等级</view>
       </view>
-      <view class="upgrade-btn">
-        <text decode="true">升级条件 &gt;</text>
+      <view class="upgrade-btn" @click="viewUpgradeRules">
+        <text>升级条件</text>
+        <image src="/static/icons/icon-right.png" mode="aspectFit" class="upgrade-icon"></image>
       </view>
     </view>
 
