@@ -238,13 +238,17 @@ export default {
       try {
         loading.value = true;
         const res = await api.orders.getListByStatus({ status });
-        if (res.code === 200 && res.data && res.data.content) {
-          orders.value = res.data.content;
-          hasOrders.value = orders.value.length > 0;
-        } else {
-          orders.value = [];
-          hasOrders.value = false;
+        let list = [];
+        if (res.code === 200 && res.data) {
+          // 兼容 content 在 data 下或 data 本身为列表
+          if (Array.isArray(res.data.content)) {
+            list = res.data.content;
+          } else if (Array.isArray(res.data)) {
+            list = res.data;
+          }
         }
+        orders.value = list;
+        hasOrders.value = orders.value.length > 0;
       } catch (error) {
         console.error('获取订单数据失败:', error);
         uni.showToast({
@@ -256,6 +260,11 @@ export default {
       } finally {
         loading.value = false;
       }
+    };
+
+    // 刷新当前 tab 的订单列表（供创建订单/取消等后调用）
+    const getOrders = () => {
+      loadOrdersByStatus(currentTab.value);
     };
     
     // 切换选项卡
@@ -307,8 +316,7 @@ export default {
           setTimeout(() => {
             showCreateForm.value = false;
             switchTab('pending');
-            // 刷新订单列表
-            getOrders();
+            loadOrdersByStatus('pending');
           }, 1500);
         } else {
           uni.showToast({
@@ -583,16 +591,17 @@ export default {
               uni.showLoading({ title: '处理中...' });
               
               const result = await api.orders.cancel(orderId);
-              if (result.code === 200) {
+              // 后端 PUT /status 返回订单对象，无 code 字段；成功时订单 status 为 cancelled
+              const ok = result && (result.code === 200 || result.status === 'cancelled');
+              if (ok) {
                 uni.showToast({
                   title: '订单已取消',
                   icon: 'success'
                 });
-                // 刷新订单列表
-                loadOrders();
+                getOrders();
               } else {
                 uni.showToast({
-                  title: result.message || '取消失败',
+                  title: (result && result.message) || '取消失败',
                   icon: 'error'
                 });
               }

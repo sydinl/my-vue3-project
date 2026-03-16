@@ -169,6 +169,7 @@ const handlePageParams = (params = {}) => {
   return {
     page: params.page || 1,
     pageSize: params.pageSize || 10,
+    size: params.size ?? params.pageSize ?? 10, // 后端 listByStatus 使用 size
     ...params
   };
 };
