@@ -39,10 +39,7 @@
     <!-- <view class="privileges-section">
       <view class="section-header">
         <text class="section-title">会员特权</text>
-        <view class="more-link" @click="viewAllPrivileges">
-          <text>全部特权</text>
-          <image src="/static/icons/icon-right.png" mode="aspectFit" class="more-icon"></image>
-        </view>
+        <text class="more-link" decode="true" @click="viewAllPrivileges">全部特权 &gt;</text>
       </view>
       
       <view class="privileges-list">
